@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP LM9036M
+D Ultra-Low Quiescent Current Voltage Regulator, Fixed-Output, -45V-40V Vin, 200mV Dropout, 50mA Output
+K 50mA Regulator Adjustable Positive
+F http://www.ti.com/lit/ds/symlink/lm9036.pdf
+$ENDCMP
+#
+#End Doc Library

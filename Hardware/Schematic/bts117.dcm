@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP BTS117
+D Smart Low Side Power Switch, HITFET BTS 117, N-Channel MOSFET, TO-220
+K N-Channel MOSFET
+F http://www.infineon.com/dgdl/Infineon-BTS117-DS-v01_04-en.pdf?fileId=db3a30433a747525013abff8302d549c
+$ENDCMP
+#
+#End Doc Library
