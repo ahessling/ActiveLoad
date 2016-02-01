@@ -1,4 +1,4 @@
-update=17.01.2016 21:06:39
+update=01.02.2016 22:23:00
 version=1
 last_client=kicad
 [pcbnew]
@@ -27,7 +27,7 @@ NetIExt=net
 version=1
 [eeschema]
 version=1
-LibDir=
+LibDir=C:/Elektronik/kicad/libraries
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -60,3 +60,7 @@ LibName28=contrib
 LibName29=valves
 LibName30=stm32f0
 LibName31=bts117
+LibName32=max3207e
+LibName33=C:/Elektronik/kicad/libraries/w_device
+LibName34=Tag-Connect
+LibName35=lm9036m

@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP MAX3207E
+D Quad High-Speed Differential ESD-Protection IC
+K MAX3207E, ESD Protection, TVS
+F https://datasheets.maximintegrated.com/en/ds/MAX3205E-MAX3208E.pdf
+$ENDCMP
+#
+#End Doc Library
