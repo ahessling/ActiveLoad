@@ -1,4 +1,4 @@
-update=01.02.2016 22:23:00
+update=02.02.2016 20:11:00
 version=1
 last_client=kicad
 [pcbnew]
@@ -64,3 +64,4 @@ LibName32=max3207e
 LibName33=C:/Elektronik/kicad/libraries/w_device
 LibName34=Tag-Connect
 LibName35=lm9036m
+LibName36=dog-displays

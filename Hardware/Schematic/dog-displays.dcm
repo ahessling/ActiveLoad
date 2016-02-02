@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP EA-DOGS104-A
+D 4x10/2x10 LCD module with SPI interface, 3.3V
+K LCD, Display, SPI
+F http://www.lcd-module.de/fileadmin/pdf/doma/dogs104.pdf
+$ENDCMP
+#
+#End Doc Library
