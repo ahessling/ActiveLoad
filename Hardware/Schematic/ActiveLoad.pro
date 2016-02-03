@@ -1,4 +1,4 @@
-update=02.02.2016 20:11:00
+update=03.02.2016 20:45:35
 version=1
 last_client=kicad
 [pcbnew]
@@ -65,3 +65,5 @@ LibName33=C:/Elektronik/kicad/libraries/w_device
 LibName34=Tag-Connect
 LibName35=lm9036m
 LibName36=dog-displays
+LibName37=ALPS-STEC12E08
+LibName38=C:/Elektronik/kicad-library/library/maxim

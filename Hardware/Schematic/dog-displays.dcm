@@ -6,4 +6,8 @@ K LCD, Display, SPI
 F http://www.lcd-module.de/fileadmin/pdf/doma/dogs104.pdf
 $ENDCMP
 #
+$CMP EA-LED36x28-A
+D LED backlight for DOGS displays
+$ENDCMP
+#
 #End Doc Library
