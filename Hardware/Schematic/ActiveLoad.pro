@@ -1,4 +1,4 @@
-update=03.02.2016 20:45:35
+update=07.02.2016 21:33:28
 version=1
 last_client=kicad
 [pcbnew]
@@ -67,3 +67,4 @@ LibName35=lm9036m
 LibName36=dog-displays
 LibName37=ALPS-STEC12E08
 LibName38=C:/Elektronik/kicad-library/library/maxim
+LibName39=bas40

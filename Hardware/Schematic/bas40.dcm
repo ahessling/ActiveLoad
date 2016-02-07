@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP BAS40
+D General purpose Schottky diode, 40V, 120 mA
+K Schottky diode
+$ENDCMP
+#
+#End Doc Library
