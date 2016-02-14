@@ -83,6 +83,17 @@
 #define DS18B20_POWER_PORT      GPIOA
 #define DS18B20_POWER_PIN       GPIO_Pin_10
 
+// Rotary encoder
+#define ENCODER_A_PORT          GPIOA
+#define ENCODER_A_PIN           GPIO_Pin_6
+#define ENCODER_A_SOURCE        GPIO_PinSource6
+#define ENCODER_B_PORT          GPIOA
+#define ENCODER_B_PIN           GPIO_Pin_7
+#define ENCODER_B_SOURCE        GPIO_PinSource7
+#define ENCODER_SWITCH_PORT     GPIOA
+#define ENCODER_SWITCH_PIN      GPIO_Pin_2
+#define ENCODER_TIM             TIM3
+#define ENCODER_AF              GPIO_AF_1
 
 /*----------------------------------------------------------------------------*\
 ** Structures                                                                 **

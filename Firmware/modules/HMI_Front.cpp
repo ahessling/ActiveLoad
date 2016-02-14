@@ -53,4 +53,45 @@ void HMI_Front::lowLevelInit()
   gpio.GPIO_Pin = DISPLAY_RESET_PIN;
   DISPLAY_RESET_PORT->BSRR = DISPLAY_RESET_PIN; // Reset high (no reset)
   GPIO_Init(DISPLAY_RESET_PORT, &gpio);
+
+  // init encoder interface
+  gpio.GPIO_Pin = ENCODER_A_PIN;
+  gpio.GPIO_Mode = GPIO_Mode_AF;
+  gpio.GPIO_PuPd  = GPIO_PuPd_UP;
+  GPIO_Init(ENCODER_A_PORT, &gpio);
+
+  gpio.GPIO_Pin = ENCODER_B_PIN;
+  GPIO_Init(ENCODER_B_PORT, &gpio);
+
+  gpio.GPIO_Mode = GPIO_Mode_IN;
+  gpio.GPIO_Pin = ENCODER_SWITCH_PIN;
+  GPIO_Init(ENCODER_SWITCH_PORT, &gpio);
+
+  // select alternate function
+  GPIO_PinAFConfig(ENCODER_A_PORT, ENCODER_A_SOURCE, ENCODER_AF);
+  GPIO_PinAFConfig(ENCODER_B_PORT, ENCODER_B_SOURCE, ENCODER_AF);
+
+  // timer configuration
+
+  // init timer peripheral clock
+  RCC->APB1ENR |= RCC_APB1Periph_TIM3;
+
+  // set time base
+  ENCODER_TIM->PSC = 7; // 48 MHz --> 6 MHz
+  ENCODER_TIM->ARR = 0xFFFF; // use full 16 bit as period
+  ENCODER_TIM->EGR = TIM_PSCReloadMode_Immediate; // immediate update
+
+  // set encoder mode
+
+  // Encoder mode 1: Counter counts up/down on TI2FP1 edge depending on TI1FP2 level
+  ENCODER_TIM->SMCR = TIM_EncoderMode_TI1;
+
+  // IC1 is mapped on TI1, IC2 is mapped on TI2
+  ENCODER_TIM->CCMR1 = TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC2S_0;
+
+  // polarity: TI1FP1 rising edge, TI2FP1 rising edge
+  ENCODER_TIM->CCER = TIM_ICPolarity_Rising | (TIM_ICPolarity_Rising << 4);
+
+  // enable timer
+  ENCODER_TIM->CR1 |= TIM_CR1_CEN;
 }
