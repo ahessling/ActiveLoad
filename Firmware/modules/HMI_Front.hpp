@@ -8,6 +8,7 @@
 #ifndef HMI_FRONT_HPP_
 #define HMI_FRONT_HPP_
 
+#include <stdint.h>
 #include "HMI.hpp"
 #include "driver/spibase.hpp"
 
@@ -24,6 +25,8 @@ private:
   void lowLevelInit();
 
   SPIBase* _spi;
+  uint16_t _encoderCounter;
+  uint16_t _lastEncoderCounter;
 };
 
 #endif /* HMI_FRONT_HPP_ */

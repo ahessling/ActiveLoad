@@ -8,14 +8,27 @@
 
 #include "HMI_Front.hpp"
 #include "hw_config.h"
+#include <stdio.h>
 
 HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi)
 {
   lowLevelInit();
+
+  _encoderCounter = 0;
+  _lastEncoderCounter = 0;
 }
 
 bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
 {
+  _encoderCounter = TIM3->CNT;
+
+  if (_encoderCounter != _lastEncoderCounter)
+  {
+    printf("%d\n", _encoderCounter);
+  }
+
+  _lastEncoderCounter = _encoderCounter;
+
   return false;
 }
 
@@ -77,7 +90,8 @@ void HMI_Front::lowLevelInit()
   RCC->APB1ENR |= RCC_APB1Periph_TIM3;
 
   // set time base
-  ENCODER_TIM->PSC = 7; // 48 MHz --> 6 MHz
+  ENCODER_TIM->CR1 = 2 << 8; // sampling clock of filters = timer_clock / 4
+  ENCODER_TIM->PSC = 0; // 48 MHz (no prescaler)
   ENCODER_TIM->ARR = 0xFFFF; // use full 16 bit as period
   ENCODER_TIM->EGR = TIM_PSCReloadMode_Immediate; // immediate update
 
@@ -86,8 +100,11 @@ void HMI_Front::lowLevelInit()
   // Encoder mode 1: Counter counts up/down on TI2FP1 edge depending on TI1FP2 level
   ENCODER_TIM->SMCR = TIM_EncoderMode_TI1;
 
+  // configure input capture filter for both inputs
+  unsigned char filter = 7; // 0..15 (s. Reference manual p. 432); 7 = f_DTS / 4, N = 8
+
   // IC1 is mapped on TI1, IC2 is mapped on TI2
-  ENCODER_TIM->CCMR1 = TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC2S_0;
+  ENCODER_TIM->CCMR1 = TIM_CCMR1_CC1S_0 | TIM_CCMR1_CC2S_0 | (filter << 4) | (filter << 12);
 
   // polarity: TI1FP1 rising edge, TI2FP1 rising edge
   ENCODER_TIM->CCER = TIM_ICPolarity_Rising | (TIM_ICPolarity_Rising << 4);
