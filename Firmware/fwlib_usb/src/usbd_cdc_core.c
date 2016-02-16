@@ -255,6 +255,8 @@ uint8_t  usbd_cdc_Init (void *pdev,
               USB_EP_INT);
   
 
+  // reset transfer state
+  USB_Tx_State = 0;
   
   /* Initialize the Interface physical components */
   APP_FOPS.pIf_Init();
@@ -289,6 +291,9 @@ uint8_t  usbd_cdc_DeInit (void *pdev,
   /* Open Command IN EP */
   DCD_EP_Close((USB_CORE_HANDLE*)pdev,
               CDC_CMD_EP);
+
+  // reset transfer state
+  USB_Tx_State = 0;
 
   /* Restore default state of the Interface physical components */
   APP_FOPS.pIf_DeInit();
