@@ -49,6 +49,10 @@ void OutputControl::lowLevelInit()
   DAC->DHR12R1 = 0;
 }
 
+/** Change setpoint current.
+ *
+ * @param current Current in A
+ */
 void OutputControl::setSetpointCurrent(float current)
 {
   // calculate DAC value
@@ -56,7 +60,13 @@ void OutputControl::setSetpointCurrent(float current)
   // gain of 1 (assuming 0.1 Ohm shunt and "DAC to opamp" gain of 0.1)
   float voltage = current;
 
-  unsigned int dacValue = voltage / (3.30 / 4096);
+  unsigned int dacValue = voltage / (3.30f / 4096.f);
 
-  DAC->DHR12R1 = dacValue & 0xFFF;
+  // limit to 12 bits
+  if (dacValue > 0xFFF)
+  {
+    dacValue = 0xFFF;
+  }
+
+  DAC->DHR12R1 = dacValue;
 }

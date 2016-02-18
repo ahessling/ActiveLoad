@@ -256,7 +256,7 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
         int value;
         if (sscanf(param, "%d", &value) == 1)
         {
-          systemCommand.setpointCurrent = value;
+          systemCommand.setpointCurrent = value / 1000.0; // mA --> A
           return CR_OK;
         }
       }
@@ -282,7 +282,7 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
         int value;
         if (sscanf(param, "%d", &value) == 1)
         {
-          systemCommand.setpointCurrent = value;
+          systemCommand.setpointCurrent = value / 1000.0; // mA --> A
           return CR_OK;
         }
       }

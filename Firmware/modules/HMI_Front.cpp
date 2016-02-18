@@ -9,25 +9,36 @@
 #include "HMI_Front.hpp"
 #include "hw_config.h"
 #include <stdio.h>
+#include <stdlib.h>
+
+// Minimum number of encoder steps between two setpoint current "steps"
+#define ENCODER_STEPS_PER_TURN  2
 
 HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi)
 {
   lowLevelInit();
 
-  _encoderCounter = 0;
-  _lastEncoderCounter = 0;
+  _encoderCounter = ENCODER_TIM->CNT;
+  _lastEncoderCounter = _encoderCounter;
 }
 
 bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
 {
-  _encoderCounter = TIM3->CNT;
+  _encoderCounter = ENCODER_TIM->CNT;
 
+  // detect encoder movement
   if (_encoderCounter != _lastEncoderCounter)
   {
-    printf("%d\n", _encoderCounter);
-  }
+    int16_t encoderDiff = _encoderCounter - _lastEncoderCounter;
 
-  _lastEncoderCounter = _encoderCounter;
+    if (abs(encoderDiff) >= ENCODER_STEPS_PER_TURN)
+    {
+      // increase/decrease setpoint current
+      systemCommand.stepSetpointCurrent(encoderDiff / ENCODER_STEPS_PER_TURN);
+
+      _lastEncoderCounter = _encoderCounter;
+    }
+  }
 
   return false;
 }
