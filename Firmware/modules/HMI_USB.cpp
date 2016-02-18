@@ -305,12 +305,92 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
       }
       else if (!strcmp(parsedCommand, "CURR"))
       {
-        // todo: implement
+        int value;
+
+        // calibration of setpoint and actual current
+        switch (_calibStep[0])
+        {
+        case 0:
+          printf("WARN: Entering calibration mode. Connect a voltage source capable of delivering up to 1A! Type this command again and follow instructions.\n");
+          _calibStep[0]++;
+
+          return CR_NONE;
+
+        case 1:
+          // clear calibration data first
+          systemCommand.calibSetpointCurrent.clearCalibrationData();
+          systemState.calibActualCurrent.clearCalibrationData();
+
+          printf("Measure load current with a calibrated device and type CALIB:CURR <Measured current [mA]>\n");
+
+          // first setpoint
+          systemCommand.setpointCurrent = 0.1f; // 100 mA
+          _calibSetpointCurrentX[0] = systemCommand.setpointCurrent;
+
+          _calibStep[0]++;
+          return CR_NONE;
+
+        case 2:
+          if (sscanf(param, "%d", &value) == 1)
+          {
+            // save first measurement
+            _calibSetpointCurrentY[0] = value / 1000.0; // mA --> A
+
+            // measured current
+            _calibActualCurrentX[0] = _calibSetpointCurrentY[0];
+            _calibActualCurrentY[0] = systemState.actualCurrent;
+
+            printf("Measure load current with a calibrated device and type CALIB:CURR <Measured current [mA]>\n");
+
+            // second setpoint
+            systemCommand.setpointCurrent = 1.0f; // 1 A
+            _calibSetpointCurrentX[1] = systemCommand.setpointCurrent;
+
+            _calibStep[0]++;
+            return CR_NONE;
+          }
+          else
+          {
+            return CR_UNKNOWN;
+          }
+
+        case 3:
+          if (sscanf(param, "%d", &value) == 1)
+          {
+            // save second setpoint
+            _calibSetpointCurrentY[1] = value / 1000.0; // mA --> A
+
+            // measured current
+            _calibActualCurrentX[1] = _calibSetpointCurrentY[1];
+            _calibActualCurrentY[1] = systemState.actualCurrent;
+
+            // calculate calibration data
+            systemCommand.calibSetpointCurrent.calibrate(_calibSetpointCurrentX, _calibSetpointCurrentY);
+            systemState.calibActualCurrent.calibrate(_calibActualCurrentX, _calibActualCurrentY);
+
+            // save calibration data to NVRAM
+            _nvRAM->saveMemorySlot(NVRAM::MemoryLayout::CalibSetpointCurrent, systemCommand.calibSetpointCurrent);
+            _nvRAM->saveMemorySlot(NVRAM::MemoryLayout::CalibActualCurrent, systemState.calibActualCurrent);
+
+            printf("Calibration done.\n");
+
+            systemCommand.setpointCurrent = 0.0f;
+
+            _calibStep[0] = 0;
+            return CR_NONE;
+          }
+          else
+          {
+            return CR_UNKNOWN;
+          }
+        }
+
       }
       else if (!strcmp(parsedCommand, "VOLT"))
       {
         int value;
 
+        // calibration of actual voltage
         switch (_calibStep[1])
         {
         case 0:

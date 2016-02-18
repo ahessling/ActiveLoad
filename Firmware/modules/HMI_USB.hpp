@@ -56,7 +56,8 @@ private:
 
   unsigned int _calibStep[2];
   float _calibActualVoltageX[2], _calibActualVoltageY[2];
-  float _calibCurrentX[2], _calibCurrentY[2];
+  float _calibActualCurrentX[2], _calibActualCurrentY[2];
+  float _calibSetpointCurrentX[2], _calibSetpointCurrentY[2];
 
   NVRAM* _nvRAM;
 };
