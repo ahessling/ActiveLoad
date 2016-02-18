@@ -309,7 +309,70 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
       }
       else if (!strcmp(parsedCommand, "VOLT"))
       {
-        // todo: implement
+        int value;
+
+        switch (_calibStep[1])
+        {
+        case 0:
+          printf("WARN: Entering calibration mode. Type this command again and follow instructions.\n");
+          _calibStep[1]++;
+
+          return CR_NONE;
+
+        case 1:
+          // clear calibration data first
+          systemState.calibActualVoltage.clearCalibrationData();
+
+          // disconnect load, so no current flow can disturb this measurement
+          systemCommand.setpointCurrent = 0;
+
+          printf("Set voltage source to 5-10V and type CALIB:VOLT <Measured voltage [mV]>\n");
+
+          _calibStep[1]++;
+
+          return CR_NONE;
+
+        case 2:
+          if (sscanf(param, "%d", &value) == 1)
+          {
+            // measured voltage (internally)
+            _calibActualVoltageX[0] = value / 1000.0; // mV --> V
+            _calibActualVoltageY[0] = systemState.actualVoltage;
+
+            printf("Set voltage source to 20-30V and type CALIB:VOLT <Measured voltage [mV]>\n");
+
+            _calibStep[1]++;
+
+            return CR_NONE;
+          }
+          else
+          {
+            return CR_UNKNOWN;
+          }
+
+        case 3:
+          if (sscanf(param, "%d", &value) == 1)
+          {
+            // measured voltage (internally)
+            _calibActualVoltageX[1] = value / 1000.0; // mV --> V
+            _calibActualVoltageY[1] = systemState.actualVoltage;
+
+            systemState.calibActualVoltage.calibrate(_calibActualVoltageX, _calibActualVoltageY);
+
+            // save calibration data to NVRAM
+            _nvRAM->saveMemorySlot(NVRAM::MemoryLayout::CalibActualVoltage, systemState.calibActualVoltage);
+
+            printf("Calibration done.\n");
+
+            _calibStep[1] = 0;
+
+            return CR_NONE;
+          }
+          else
+          {
+            return CR_UNKNOWN;
+          }
+        }
       }
     }
 
