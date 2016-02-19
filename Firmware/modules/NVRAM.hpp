@@ -10,6 +10,7 @@
 
 #include "tools/Serializable.hpp"
 #include "tools/TwoPointCalibration.hpp"
+#include <stdint.h>
 
 #define EBADCHECKSUM    1000
 
@@ -41,6 +42,12 @@ public:
 
 private:
   void lowLevelInit();
+
+  void eraseParameters();
+
+  int writeMemorySlot(enum MemoryLayout memorySlot, char* buf, unsigned int size);
+
+  void writeParametersToFlash(uint32_t* parametersBuf, int size);
 };
 
 #endif /* NVRAM_HPP_ */
