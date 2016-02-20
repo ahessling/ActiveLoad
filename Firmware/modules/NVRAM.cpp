@@ -93,7 +93,7 @@ int NVRAM::writeMemorySlot(enum MemoryLayout memorySlot, char* buf,
 
   // temporary buffer that holds all current parameters
   // this must be word-aligned and the size must be a multiple of 4!
-  uint32_t savedParameters[(MemoryLayout::MemorySize + 4) >> 2];
+  uint32_t savedParameters[(MemoryLayout::MemorySize + 3) >> 2];
 
   // read from flash
   memcpy(savedParameters, (char*)&_parameters_start, sizeof(savedParameters));
