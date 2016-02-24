@@ -49,6 +49,10 @@ public:
 
   int write(unsigned char c, unsigned char x, unsigned char y);
 
+  int write(char* str);
+
+  int write(char* str, unsigned char x, unsigned char y);
+
   int gotoXY(unsigned char x, unsigned char y);
 
 protected:

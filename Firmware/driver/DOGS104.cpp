@@ -155,6 +155,43 @@ int DOGS104::write(unsigned char c, unsigned char x, unsigned char y)
   }
 }
 
+/** Write a null-terminated string to the current position.
+ *
+ * @param str Null-terminated string
+ * @return 0
+ */
+int DOGS104::write(char* str)
+{
+  if (0 != str)
+  {
+    while (*str)
+    {
+      write(*str++);
+    }
+  }
+
+  return 0;
+}
+
+/** Write a null-terminated string to a specified position.
+ *
+ * @param str Null-terminated string
+ * @param x X position
+ * @param y Y position
+ * @return 0, otherwise -EINVAL if position is invalid
+ */
+int DOGS104::write(char* str, unsigned char x, unsigned char y)
+{
+  int ret = gotoXY(x, y);
+
+  if (0 == ret)
+  {
+    ret = write(str);
+  }
+
+  return ret;
+}
+
 /** Set the DDRAM address.
  *
  * @param address DDRAM address (0..127)
