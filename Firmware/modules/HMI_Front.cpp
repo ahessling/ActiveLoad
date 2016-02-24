@@ -10,16 +10,24 @@
 #include "hw_config.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "driver/gpio.h"
 
 // Minimum number of encoder steps between two setpoint current "steps"
 #define ENCODER_STEPS_PER_TURN  2
 
-HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi)
+HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi),
+  _display(spi,
+  {DISPLAY_CS_PORT, DISPLAY_CS_PIN}, // CS
+  {DISPLAY_RESET_PORT, DISPLAY_RESET_PIN}, // Reset
+  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_3_4)
 {
   lowLevelInit();
 
   _encoderCounter = ENCODER_TIM->CNT;
   _lastEncoderCounter = _encoderCounter;
+
+  // init display and turn it on
+  _display.init();
 }
 
 bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)

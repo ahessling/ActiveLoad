@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "HMI.hpp"
 #include "driver/spibase.hpp"
+#include "driver/DOGS104_SPI.hpp"
 
 class HMI_Front : public HMI
 {
@@ -27,6 +28,7 @@ private:
   SPIBase* _spi;
   uint16_t _encoderCounter;
   uint16_t _lastEncoderCounter;
+  DOGS104_SPI _display;
 };
 
 #endif /* HMI_FRONT_HPP_ */
