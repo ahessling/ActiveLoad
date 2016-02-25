@@ -11,15 +11,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "driver/gpio.h"
+#include "tools/systimer.h"
 
 // Minimum number of encoder steps between two setpoint current "steps"
-#define ENCODER_STEPS_PER_TURN  2
+#define ENCODER_STEPS_PER_TURN      2
+
+// Minimum time between two display updates [ms]
+#define DISPLAY_REFRESH_INTERVAL    100
 
 HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi),
   _display(spi,
   {DISPLAY_CS_PORT, DISPLAY_CS_PIN}, // CS
   {DISPLAY_RESET_PORT, DISPLAY_RESET_PIN}, // Reset
-  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_3_4)
+  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_3_4),
+  _lastSystemState(NULL)
 {
   lowLevelInit();
 
@@ -46,6 +51,20 @@ bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
 
       _lastEncoderCounter = _encoderCounter;
     }
+  }
+
+  // update display when system state changes
+  // limit refresh time
+  if ((systemState != _lastSystemState) &&
+      (mstimer_get() - _lastDisplayUpdate > DISPLAY_REFRESH_INTERVAL))
+  {
+    updateDisplay(systemState);
+
+    // save last system state
+    _lastSystemState = systemState;
+
+    // save last refresh time
+    _lastDisplayUpdate = mstimer_get();
   }
 
   return false;
@@ -130,4 +149,27 @@ void HMI_Front::lowLevelInit()
 
   // enable timer
   ENCODER_TIM->CR1 |= TIM_CR1_CEN;
+}
+
+void HMI_Front::updateDisplay(const SystemState& systemState)
+{
+  char line[12];
+
+  // line 1
+  sprintf(line, "Iact %1.2fA", systemState.actualCurrent);
+  _display.write(line, 0, 0);
+
+  // line 2
+  sprintf(line, "Iset %1.2fA", systemState.setpointCurrent);
+  _display.write(line, 0, 1);
+
+  // line 3
+  sprintf(line, "U    %2.1fV", systemState.actualVoltage);
+  _display.write(line, 0, 2);
+
+  // line 4
+  sprintf(line, "P %2dW/%2d C",
+      (int)(systemState.actualPower + 0.5),
+      (int)(systemState.temperaturePower + 0.5));
+  _display.write(line, 0, 3);
 }

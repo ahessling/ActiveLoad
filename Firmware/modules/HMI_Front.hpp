@@ -24,11 +24,14 @@ public:
 
 private:
   void lowLevelInit();
+  void updateDisplay(const SystemState& systemState);
 
   SPIBase* _spi;
   uint16_t _encoderCounter;
   uint16_t _lastEncoderCounter;
   DOGS104_SPI _display;
+  SystemState _lastSystemState;
+  uint32_t _lastDisplayUpdate;
 };
 
 #endif /* HMI_FRONT_HPP_ */
