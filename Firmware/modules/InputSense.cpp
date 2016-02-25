@@ -95,6 +95,9 @@ void InputSense::execute(SystemCommand& systemCommand,
   // get actual voltage
   systemState.actualVoltage = systemState.calibActualVoltage.translate(getActualVoltage());
 
+  // calculate power
+  systemState.actualPower = systemState.actualVoltage * systemState.actualCurrent;
+
   // get temperatures every 5 seconds
   if (mstimer_get() - _timeLastTemperature > TEMPERATURE_INTERVAL)
   {

@@ -32,11 +32,31 @@ public:
   float setpointCurrent;
   float actualVoltage;
   float actualCurrent;
+  float actualPower; ///< Actual power: actualVoltage * actualCurrent
+
   TwoPointCalibration calibActualVoltage;
   TwoPointCalibration calibActualCurrent;
 
   // temperature
   float temperaturePower;
+
+  bool operator!=(const SystemState& rhs) const
+  {
+    bool unequal = false;
+
+    unequal |= setpointCurrent != rhs.setpointCurrent;
+    unequal |= actualVoltage != rhs.actualVoltage;
+    unequal |= actualCurrent != rhs.actualCurrent;
+    unequal |= actualPower != rhs.actualPower;
+    unequal |= temperaturePower != rhs.temperaturePower;
+
+    return unequal;
+  }
+
+  bool operator==(const SystemState& rhs) const
+  {
+    return !(*this != rhs);
+  }
 
 private:
   NVRAM* _nvRAM;
