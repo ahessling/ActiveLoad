@@ -27,7 +27,7 @@ private:
   int writeCommand(uint16_t command);
 
   SPIBase* _spi;
-  const Gpio& _gpioReset;
+  const Gpio _gpioReset;
 };
 
 #endif /* DOGS104_SPI_HPP_ */
