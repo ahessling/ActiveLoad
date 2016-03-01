@@ -171,7 +171,7 @@ endif
 AS_FLAGS = -g -ggdb3 -Wa,-amhls=$(OUT_DIR_F)$(notdir $(<:.$(AS_EXT)=.lst))
 
 # flags for linker
-LD_FLAGS = --specs=nano.specs -u _printf_float -T$(LD_SCRIPT) -g -Wl,-Map=$(OUT_DIR_F)$(PROJECT).map,--cref
+LD_FLAGS = --specs=nano.specs --specs=nosys.specs -u _printf_float -T$(LD_SCRIPT) -g -Wl,-Map=$(OUT_DIR_F)$(PROJECT).map,--cref
 
 # process option for removing unused code
 ifeq ($(REMOVE_UNUSED), 1)
