@@ -55,6 +55,10 @@ public:
 
   int gotoXY(unsigned char x, unsigned char y);
 
+  void setDoubleBuffered(bool doubleBuffered);
+
+  virtual void refresh();
+
 protected:
   virtual void reset() = 0;
 
@@ -62,10 +66,17 @@ protected:
 
 private:
   void setDDRAMAddress(unsigned char address);
+  int _gotoXY(unsigned char x, unsigned char y);
 
   enum DogFontWidth _fontWidth;
   enum DogDisplayLines _lines;
   bool _topView;
+  bool _doubleBuffered; ///< Double buffered on/off
+  char _frameBuffer[40]; ///< Frame buffer in double buffered configuration
+  unsigned char _cursorPos; ///< Current cursor position
+  unsigned char _dirtyFrom; ///< First position of changed data in framebuffer
+  unsigned char _dirtyTo; ///< Last position of changed data in framebuffer
+  bool _dirty;
 };
 
 #endif /* DOGS104_HPP_ */

@@ -6,9 +6,11 @@
  * @description
  */
 #include "DOGS104.hpp"
+#include <string.h>
 
-#define MAX_LINES   4  // Max. number of lines
-#define MAX_X       10 // Max. characters per line
+#define MAX_LINES       4  // Max. number of lines
+#define MAX_X           10 // Max. characters per line
+#define MAX_ADDRESS     (MAX_LINES * MAX_X - 1) // Highest possible (logical) address
 
 DOGS104::DOGS104(enum DogFontWidth fontWidth, enum DogDisplayLines lines,
     bool topView) :
@@ -16,6 +18,11 @@ DOGS104::DOGS104(enum DogFontWidth fontWidth, enum DogDisplayLines lines,
     _lines(lines),
     _topView(topView)
 {
+  _doubleBuffered = false;
+  _cursorPos = 0;
+  _dirtyFrom = 0;
+  _dirtyTo = 0;
+  _dirty = false;
 }
 
 /** Initializes the display and turns it on.
@@ -65,6 +72,8 @@ void DOGS104::init()
   writeCommand(0x7A); // Set contrast (DB3-DB0=C3-C0)
   writeCommand(0x38); // 8 bit data length extension (RE=0, IS=0)
   writeCommand(0x08); // Display on
+
+  _cursorPos = 0;
 }
 
 /** Set the display contrast.
@@ -87,13 +96,20 @@ void DOGS104::setContrast(unsigned char contrast)
 void DOGS104::clear()
 {
   writeCommand(0x01);
+
+  if (true == _doubleBuffered)
+  {
+    memset(_frameBuffer, 0, sizeof(_frameBuffer));
+    _dirtyFrom = 0;
+    _dirtyTo = MAX_ADDRESS;
+  }
 }
 
 /** Go to a specified X/Y position.
  *
  * @param x X position (character position in line from 0..9)
  * @param y Y position (line from 0..3)
- * @return
+ * @return 0
  */
 int DOGS104::gotoXY(unsigned char x, unsigned char y)
 {
@@ -107,6 +123,22 @@ int DOGS104::gotoXY(unsigned char x, unsigned char y)
     return -EINVAL;
   }
 
+  // remember cursor position
+  _cursorPos = x + y * MAX_X;
+
+  // if display is double buffered, there is nothing else to do here
+
+  if (false == _doubleBuffered)
+  {
+    // not double buffered, so set DDRAM address
+    return _gotoXY(x, y);
+  }
+
+  return 0;
+}
+
+int DOGS104::_gotoXY(unsigned char x, unsigned char y)
+{
   // calculate DDRAM address
   unsigned char address;
 
@@ -130,7 +162,42 @@ int DOGS104::gotoXY(unsigned char x, unsigned char y)
  */
 void DOGS104::write(unsigned char c)
 {
-  writeCommand(0x200 | c);
+  if (false == _doubleBuffered)
+  {
+    // write directly to LCD
+    writeCommand(0x200 | c);
+  }
+  else
+  {
+    // use framebuffer, no immediate update
+
+    if (false == _dirty)
+    {
+      // save first dirty position
+      _dirtyFrom = _cursorPos;
+    }
+
+    // set dirty flags and calculate dirty positions
+    _dirty = true;
+
+    if (_cursorPos < _dirtyFrom)
+    {
+      _dirtyFrom = _cursorPos;
+    }
+
+    _frameBuffer[_cursorPos++] = c;
+
+    if (_cursorPos > _dirtyTo)
+    {
+      _dirtyTo = _cursorPos;
+    }
+
+    // wrap around
+    if (_cursorPos > MAX_ADDRESS)
+    {
+      _cursorPos = 0;
+    }
+  }
 }
 
 /** Write a character to a specified position.
@@ -190,6 +257,56 @@ int DOGS104::write(char* str, unsigned char x, unsigned char y)
   }
 
   return ret;
+}
+
+/** Enable/disable LCD double buffering using an internal framebuffer.
+ *
+ * When the framebuffer is initially enabled, the framebuffer will be cleared.
+ *
+ * @param doubleBuffered True/false
+ */
+void DOGS104::setDoubleBuffered(bool doubleBuffered)
+{
+  // clear framebuffer
+  if (true == doubleBuffered && _doubleBuffered != doubleBuffered)
+  {
+    memset(_frameBuffer, 0, sizeof(_frameBuffer));
+    _dirtyFrom = 0;
+    _dirtyTo = MAX_ADDRESS;
+    _dirty = true;
+  }
+
+  _doubleBuffered = doubleBuffered;
+}
+
+/** Refresh the display when the LCD is double buffered.
+ *
+ * Only the modified characters are written, the rest is untouched.
+ *
+ * @note Does nothing if display is not double buffered.
+ */
+void DOGS104::refresh()
+{
+  if (true == _doubleBuffered)
+  {
+    unsigned char x = _dirtyFrom % MAX_X;
+    unsigned char y = _dirtyFrom / MAX_X;
+
+    // go to position of first changed data
+    gotoXY(x, y);
+
+    // only write "dirty" characters to LCD
+    while (_dirtyFrom != _dirtyTo)
+    {
+      // write directly to LCD
+      writeCommand(0x200 | _frameBuffer[_dirtyFrom++]);
+    }
+
+    // reset dirty flags
+    _dirtyFrom = 0;
+    _dirtyTo = 0;
+    _dirty = false;
+  }
 }
 
 /** Set the DDRAM address.
