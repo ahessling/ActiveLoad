@@ -300,6 +300,12 @@ void DOGS104::refresh()
     {
       // write directly to LCD
       writeCommand(0x200 | _frameBuffer[_dirtyFrom++]);
+
+      // move cursor to new line if line end is reached
+      if ((_dirtyFrom % MAX_X) == 0)
+      {
+        gotoXY(0, ++y);
+      }
     }
 
     // reset dirty flags
