@@ -23,7 +23,7 @@ HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi),
   _display(spi,
   {DISPLAY_CS_PORT, DISPLAY_CS_PIN}, // CS
   {DISPLAY_RESET_PORT, DISPLAY_RESET_PIN}, // Reset
-  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_3_4),
+  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_4),
   _lastSystemState(NULL)
 {
   lowLevelInit();

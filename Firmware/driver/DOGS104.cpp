@@ -23,6 +23,7 @@ DOGS104::DOGS104(enum DogFontWidth fontWidth, enum DogDisplayLines lines,
   _dirtyFrom = 0;
   _dirtyTo = 0;
   _dirty = false;
+  _functionSet = 0;
 }
 
 /** Initializes the display and turns it on.
@@ -33,11 +34,19 @@ void DOGS104::init()
   // reset the display
   reset();
 
+  // function set register (RE=0, IS=0)
+  _functionSet = 0x30;
+
+  if (LINES_2 == _lines || LINES_4 == _lines)
+  {
+    // set N bit in 2/4 lines mode, otherwise 0
+    _functionSet |= 0x08;
+  }
+
   // initialize the display and turn it on
-  writeCommand(0x3A); // 8 bit data length extension (RE=1, REV=0)
+  writeCommand(_functionSet | 0x02); // 8 bit data length extension (RE=1, REV=0)
 
   // set font width and number of lines
-  // fixme: needs work and testing
   unsigned char fontConfig = 0x08;
 
   if (FONT_WIDTH_6 == _fontWidth)
@@ -45,8 +54,9 @@ void DOGS104::init()
     fontConfig |= 0x04;
   }
 
-  if (LINES_3_4 == _lines)
+  if (LINES_3 == _lines || LINES_4 == _lines)
   {
+    // set NW bit in 3 and 4 lines mode
     fontConfig |= 0x01;
   }
 
@@ -65,12 +75,18 @@ void DOGS104::init()
   }
 
   writeCommand(0x1E); // Bias setting BS1=1
-  writeCommand(0x39); // 8 bit data length extension (RE=0, IS=1)
+
+  // 8 bit data length extension (RE=0, IS=1)
+  writeCommand(_functionSet | 0x01);
+
   writeCommand(0x1B); // BS0=1 --> Bias=1/6
   writeCommand(0x6E); // Divider on and set value
   writeCommand(0x56); // Booster on and set contrast (DB1=C5, DB0=C4)
   writeCommand(0x7A); // Set contrast (DB3-DB0=C3-C0)
-  writeCommand(0x38); // 8 bit data length extension (RE=0, IS=0)
+
+  // 8 bit data length extension (RE=0, IS=0)
+  writeCommand(_functionSet);
+
   writeCommand(0x08); // Display on
 
   _cursorPos = 0;
@@ -84,10 +100,10 @@ void DOGS104::setContrast(unsigned char contrast)
 {
   contrast &= 0x3F;
 
-  writeCommand(0x39); // 8 bit data length extension (RE=0, IS=1)
+  writeCommand(_functionSet | 0x01); // 8 bit data length extension (RE=0, IS=1)
   writeCommand(0x50 | (contrast >> 4)); // Booster on and set contrast (DB1=C5, DB0=C4)
   writeCommand(0x70 | (contrast & 0x0F)); // Set contrast (DB3-DB0=C3-C0)
-  writeCommand(0x38); // 8 bit data length extension (RE=0, IS=0)
+  writeCommand(_functionSet); // 8 bit data length extension (RE=0, IS=0)
 }
 
 /** Clear the whole display.
@@ -96,6 +112,8 @@ void DOGS104::setContrast(unsigned char contrast)
 void DOGS104::clear()
 {
   writeCommand(0x01);
+
+  _cursorPos = 0;
 
   if (true == _doubleBuffered)
   {

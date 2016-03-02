@@ -31,8 +31,10 @@ public:
   /** Number of display lines */
   enum DogDisplayLines
   {
-    LINES_1_2 = 0, //!< 1-line or 2-line display
-    LINES_3_4      //!< 3-line or 4-line display
+    LINES_1 = 0,   //!< 1-line display
+    LINES_2,       //!< 2-lines display
+    LINES_3,       //!< 3-lines display
+    LINES_4        //!< 4-lines display
   };
 
   DOGS104(enum DogFontWidth fontWidth, enum DogDisplayLines lines,
@@ -77,6 +79,7 @@ private:
   unsigned char _dirtyFrom; ///< First position of changed data in framebuffer
   unsigned char _dirtyTo; ///< Last position of changed data in framebuffer
   bool _dirty;
+  unsigned char _functionSet; ///< Value of function set register (often needed)
 };
 
 #endif /* DOGS104_HPP_ */
