@@ -282,7 +282,7 @@ namespace ActiveLoadProtocol
         /// Return all elements in incoming receive FIFO queue.
         /// </summary>
         /// <returns>Array with incoming bytes</returns>
-        public byte[] ReadAll()
+        public byte[] ReadExisting()
         {
             lock (lockIncoming)
             {
@@ -303,7 +303,7 @@ namespace ActiveLoadProtocol
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if the queue is empty</exception>
         /// <returns>Oldest byte in queue</returns>
-        public byte Read()
+        public byte ReadByte()
         {
             lock (lockIncoming)
             {

@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveLoadDevice.cs" />
+    <Compile Include="ASCIIRequestResponse.cs" />
     <Compile Include="SerialPortBuffered.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
