@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO.Ports;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
 
 namespace ActiveLoadProtocol
 {
@@ -15,6 +16,8 @@ namespace ActiveLoadProtocol
         SerialPort serialPort;
         Queue<byte> queueIncoming = new Queue<byte>(16384);
         object lockIncoming = new object();
+        bool asyncReceive;
+
         #endregion
 
         #region Properties
@@ -103,6 +106,24 @@ namespace ActiveLoadProtocol
             get
             {
                 return queueIncoming.Count;
+            }
+        }
+
+        public bool AsyncReceive
+        {
+            get { return asyncReceive; }
+
+            set
+            {
+                if (!asyncReceive && value)
+                {
+                    asyncReceive = value;
+
+                    // Start reading asynchronously
+                    ReadAsync();
+                }
+
+                asyncReceive = value;
             }
         }
         #endregion
@@ -213,12 +234,23 @@ namespace ActiveLoadProtocol
         }
 
         /// <summary>
-        /// Open the serial port and start receiving data asynchronously.
+        /// Open the serial port.
         /// </summary>
-        public async void Open()
+        public void Open()
         {
             serialPort.Open();
 
+            if (asyncReceive)
+            {
+                ReadAsync();
+            }
+        }
+
+        /// <summary>
+        /// Start reading asynchronously. Stops when AsyncReceive becomes false or when the serial port closes.
+        /// </summary>
+        async void ReadAsync()
+        {
             if (serialPort.IsOpen)
             {
                 // Start reading asynchronously the safe way
@@ -228,7 +260,7 @@ namespace ActiveLoadProtocol
 
                 try
                 {
-                    while (serialPort.IsOpen)
+                    while (serialPort.IsOpen && asyncReceive)
                     {
                         // Async wait for data
                         int actualLength = await serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length);
@@ -309,6 +341,43 @@ namespace ActiveLoadProtocol
             lock (lockIncoming)
             {
                 return queueIncoming.Dequeue();
+            }
+        }
+
+        async Task<string> ReceiveTask(string delimiter)
+        {
+            string receivedString = "";
+
+            byte[] buffer = new byte[128];
+
+            while (!receivedString.Contains(delimiter))
+            {
+                // Async wait for data
+                int actualLength = await serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length);
+
+                // Copy actual received data and concat string
+                byte[] received = new byte[actualLength];
+                Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
+
+                receivedString += ASCIIEncoding.ASCII.GetString(received);
+            }
+
+            return receivedString.Substring(0, receivedString.IndexOf(delimiter));
+        }
+
+        public async Task<string> ReadUntil(string delimiter, int timeout)
+        {
+            Task<string> receiveTask = ReceiveTask(delimiter);
+
+            if (await Task.WhenAny(receiveTask, Task.Delay(timeout)) == receiveTask)
+            {
+                // task completed within timeout
+                return receiveTask.Result;
+            }
+            else
+            {
+                Console.WriteLine("Timeout");
+                return "";
             }
         }
 
