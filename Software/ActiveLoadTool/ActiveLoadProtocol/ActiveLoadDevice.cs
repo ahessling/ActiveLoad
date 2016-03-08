@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace ActiveLoadProtocol
 {
-    class ActiveLoadDevice
+    public class ActiveLoadDevice
     {
+        SerialPortBuffered serialPort;
+        SimpleSCPIProtocol scpiProtocol;
+
         public string PortName
         {
             get; private set;
@@ -22,6 +25,11 @@ namespace ActiveLoadProtocol
             PortName = portName;
         }
 
+        public ActiveLoadDevice(SerialPortBuffered serialPort)
+        {
+            this.serialPort = serialPort;
+        }
+
         string FindDevice()
         {
             throw new NotImplementedException();
@@ -29,20 +37,32 @@ namespace ActiveLoadProtocol
 
         public void Open()
         {
-            if (PortName != "")
-            {
-                // Try to open specified device
-            }
-            else
+            if (PortName == "")
             {
                 // Try to find device and open it
                 PortName = FindDevice();
+
+                throw new NotImplementedException();
+            }
+
+            if (PortName != "")
+            {
+                // Try to open specified device
+                serialPort = new SerialPortBuffered(PortName);
+                serialPort.Open();
+
+                scpiProtocol = new SimpleSCPIProtocol(serialPort);
             }
         }
 
         public void Close()
         {
+            serialPort.Close();
+        }
 
+        public void ReadActualCurrent()
+        {
+            Console.WriteLine("Read actual current: " + scpiProtocol.Request("MEAS:CURR"));
         }
     }
 }

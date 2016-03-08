@@ -6,8 +6,37 @@ using System.Threading.Tasks;
 
 namespace ActiveLoadProtocol
 {
-    internal abstract class ASCIIRequestResponse
+    class ASCIIRequestResponse
     {
+        IASCIIReadWrite readWriteInterface;
+
+        /// <summary>
+        /// If true, end every request with CR and LF characters.
+        /// </summary>
+        public bool EndWithNewLine
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Default response timeout in ms.
+        /// </summary>
+        public int ResponseTimeout
+        {
+            get; set;
+        }
+
+        public ASCIIRequestResponse(IASCIIReadWrite readWriteInterface)
+        {
+            this.readWriteInterface = readWriteInterface;
+
+            // Default response timeout
+            ResponseTimeout = 1000;
+
+            // Clear all possibly queued characters
+            readWriteInterface.FlushIncoming();
+        }
+
         public void Send(string request)
         {
             SendAwaitResponse(request);
@@ -15,31 +44,21 @@ namespace ActiveLoadProtocol
 
         public string SendAwaitResponse(string request)
         {
-            return SendAwaitResponse(request, 1000);
+            return SendAwaitResponse(request, ResponseTimeout);
         }
 
         public virtual string SendAwaitResponse(string request, int timeout)
         {
-            FlushIncoming();
+            readWriteInterface.FlushIncoming();
 
-            Write(request);
+            if (EndWithNewLine)
+            {
+                request += "\n";
+            }
 
-            return Read(timeout);
-        }
+            readWriteInterface.Write(request);
 
-        protected virtual void Write(string request)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected virtual string Read(int timeout)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected virtual void FlushIncoming()
-        {
-
+            return readWriteInterface.Read(timeout);
         }
     }
 }

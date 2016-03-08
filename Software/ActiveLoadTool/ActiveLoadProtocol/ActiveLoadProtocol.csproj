@@ -42,8 +42,10 @@
   <ItemGroup>
     <Compile Include="ActiveLoadDevice.cs" />
     <Compile Include="ASCIIRequestResponse.cs" />
+    <Compile Include="Interfaces\IASCIIReadWrite.cs" />
     <Compile Include="SerialPortBuffered.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleSCPIProtocol.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

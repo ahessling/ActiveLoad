@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.IO;
+using System.Threading;
 
 namespace ActiveLoadProtocol
 {
-    public class SerialPortBuffered
+    public class SerialPortBuffered : IASCIIReadWrite
     {
         #region Private Members
         SerialPort serialPort;
@@ -309,6 +310,17 @@ namespace ActiveLoadProtocol
             {
                 return queueIncoming.Dequeue();
             }
+        }
+
+        public string Read(int timeout)
+        {
+            // todo
+            return "";
+        }
+
+        public void FlushIncoming()
+        {
+            ClearIncoming();
         }
         #endregion
     }
