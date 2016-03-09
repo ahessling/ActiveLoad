@@ -10,6 +10,27 @@ using System.Diagnostics;
 
 namespace ActiveLoadProtocol
 {
+    public static class TaskExt
+    {
+        /// <summary>
+        /// Taken from: http://blogs.msdn.com/b/pfxteam/archive/2012/10/05/how-do-i-cancel-non-cancelable-async-operations.aspx
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="task"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<T> WithCancellation<T>(
+            this Task<T> task, CancellationToken cancellationToken)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            using (cancellationToken.Register(
+                        s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+                if (task != await Task.WhenAny(task, tcs.Task))
+                    throw new OperationCanceledException(cancellationToken);
+            return await task;
+        }
+    }
+
     public class SerialPortBuffered : IASCIIReadWrite
     {
         #region Private Members
@@ -344,41 +365,43 @@ namespace ActiveLoadProtocol
             }
         }
 
-        async Task<string> ReceiveTask(string delimiter)
-        {
-            string receivedString = "";
-
-            byte[] buffer = new byte[128];
-
-            while (!receivedString.Contains(delimiter))
-            {
-                // Async wait for data
-                int actualLength = await serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length);
-
-                // Copy actual received data and concat string
-                byte[] received = new byte[actualLength];
-                Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
-
-                receivedString += ASCIIEncoding.ASCII.GetString(received);
-            }
-
-            return receivedString.Substring(0, receivedString.IndexOf(delimiter));
-        }
-
         public async Task<string> ReadUntil(string delimiter, int timeout)
         {
-            Task<string> receiveTask = ReceiveTask(delimiter);
+            CancellationTokenSource readCancellationTokenSource = new CancellationTokenSource(timeout);
 
-            if (await Task.WhenAny(receiveTask, Task.Delay(timeout)) == receiveTask)
+            Func<Task<string>> funcReceiveTask = async () =>
             {
-                // task completed within timeout
-                return receiveTask.Result;
-            }
-            else
-            {
-                Console.WriteLine("Timeout");
-                return "";
-            }
+                string receivedString = "";
+
+                byte[] buffer = new byte[128];
+
+                try
+                {
+                    while (!receivedString.Contains(delimiter))
+                    {
+                        // Async wait for data
+                        Task<int> op = serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length);
+
+                        int actualLength = await op.WithCancellation(readCancellationTokenSource.Token);
+
+                        // Copy actual received data and concat string
+                        byte[] received = new byte[actualLength];
+                        Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
+
+                        receivedString += ASCIIEncoding.ASCII.GetString(received);
+                    }
+
+                    return receivedString.Substring(0, receivedString.IndexOf(delimiter));
+                }
+                catch (OperationCanceledException)
+                {
+                    Debug.WriteLine("ReadUntil timeout");
+
+                    throw new TimeoutException();
+                }
+            };
+
+            return await funcReceiveTask();
         }
 
         public string Read(int timeout)
