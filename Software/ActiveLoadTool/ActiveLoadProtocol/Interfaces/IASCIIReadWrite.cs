@@ -12,6 +12,8 @@ namespace ActiveLoadProtocol
 
         string Read(int timeout);
 
+        Task<string> ReadUntilAsync(string delimiter, int timeout);
+
         void FlushIncoming();
     }
 }

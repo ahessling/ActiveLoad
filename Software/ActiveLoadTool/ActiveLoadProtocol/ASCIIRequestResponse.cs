@@ -11,9 +11,9 @@ namespace ActiveLoadProtocol
         IASCIIReadWrite readWriteInterface;
 
         /// <summary>
-        /// If true, end every request with CR and LF characters.
+        /// End every line with this string. Use this suffix also as a delimiter when receiving.
         /// </summary>
-        public bool EndWithNewLine
+        public string EndLineSuffix
         {
             get; set;
         }
@@ -31,34 +31,38 @@ namespace ActiveLoadProtocol
             this.readWriteInterface = readWriteInterface;
 
             // Default response timeout
-            ResponseTimeout = 1000;
+            ResponseTimeout = 100;
 
             // Clear all possibly queued characters
             readWriteInterface.FlushIncoming();
+
+            // New line suffix as default
+            EndLineSuffix = "\n";
         }
 
         public void Send(string request)
         {
-            SendAwaitResponse(request);
+            SendAwaitResponseAsync(request);
         }
 
-        public string SendAwaitResponse(string request)
+        public Task<string> SendAwaitResponseAsync(string request)
         {
-            return SendAwaitResponse(request, ResponseTimeout);
+            return SendAwaitResponseAsync(request, ResponseTimeout);
         }
 
-        public virtual string SendAwaitResponse(string request, int timeout)
+        public Task<string> SendAwaitResponseAsync(string request, int timeout)
         {
+            // Clear the incoming buffer
             readWriteInterface.FlushIncoming();
 
-            if (EndWithNewLine)
-            {
-                request += "\n";
-            }
+            // Add end line suffix
+            request += EndLineSuffix;
 
+            // Send request
             readWriteInterface.Write(request);
 
-            return readWriteInterface.Read(timeout);
+            // Wait for answer
+            return readWriteInterface.ReadUntilAsync(EndLineSuffix, timeout);
         }
     }
 }

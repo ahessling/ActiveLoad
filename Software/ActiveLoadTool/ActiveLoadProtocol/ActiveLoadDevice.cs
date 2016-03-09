@@ -60,9 +60,13 @@ namespace ActiveLoadProtocol
             serialPort.Close();
         }
 
-        public void ReadActualCurrent()
+        public async Task<string> ReadActualCurrent()
         {
-            Console.WriteLine("Read actual current: " + scpiProtocol.Request("MEAS:CURR"));
+            string response = await scpiProtocol.Request("MEAS:CURR");
+
+            Console.WriteLine("Read actual current: " + response);
+
+            return response;
         }
     }
 }

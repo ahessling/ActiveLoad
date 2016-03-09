@@ -10,22 +10,20 @@ namespace ActiveLoadProtocol
     {
         public SimpleSCPIProtocol(IASCIIReadWrite readWriteInterface) : base(readWriteInterface)
         {
-            // End every line with CR+LF
-            EndWithNewLine = true;
+            // End with new line
+            EndLineSuffix = "\n";
         }
 
-        public void Command(string command)
+        public async void Command(string command)
         {
-            string response = SendAwaitResponse(command);
+            string response = await SendAwaitResponseAsync(command);
 
             // todo: check response
         }
 
-        public string Request(string request)
+        public async Task<string> Request(string request)
         {
-            string response = SendAwaitResponse(request + "?");
-
-            return response;
+            return await SendAwaitResponseAsync(request + "?");
         }
     }
 }
