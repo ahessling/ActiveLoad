@@ -330,6 +330,9 @@ namespace ActiveLoadProtocol
             {
                 queueIncoming.Clear();
             }
+
+            // Flush the internal SerialPort buffer
+            serialPort.BaseStream.Flush();
         }
 
         /// <summary>
@@ -365,7 +368,7 @@ namespace ActiveLoadProtocol
             }
         }
 
-        public async Task<string> ReadUntil(string delimiter, int timeout)
+        public async Task<string> ReadUntilAsync(string delimiter, int timeout)
         {
             CancellationTokenSource readCancellationTokenSource = new CancellationTokenSource(timeout);
 
