@@ -37,7 +37,6 @@ namespace ActiveLoadProtocol
         SerialPort serialPort;
         Queue<byte> queueIncoming = new Queue<byte>(16384);
         object lockIncoming = new object();
-        bool asyncReceive;
 
         #endregion
 
@@ -129,24 +128,6 @@ namespace ActiveLoadProtocol
                 return queueIncoming.Count;
             }
         }
-
-        public bool AsyncReceive
-        {
-            get { return asyncReceive; }
-
-            set
-            {
-                if (!asyncReceive && value)
-                {
-                    asyncReceive = value;
-
-                    // Start reading asynchronously
-                    ReadAsync();
-                }
-
-                asyncReceive = value;
-            }
-        }
         #endregion
 
         #region Events
@@ -213,7 +194,7 @@ namespace ActiveLoadProtocol
         }
         #endregion
 
-        #region Functions
+        #region Wrappers
         /// <summary>
         /// Write a string to the serial port.
         /// </summary>
@@ -260,54 +241,6 @@ namespace ActiveLoadProtocol
         public void Open()
         {
             serialPort.Open();
-
-            if (asyncReceive)
-            {
-                ReadAsync();
-            }
-        }
-
-        /// <summary>
-        /// Start reading asynchronously. Stops when AsyncReceive becomes false or when the serial port closes.
-        /// </summary>
-        async void ReadAsync()
-        {
-            if (serialPort.IsOpen)
-            {
-                // Start reading asynchronously the safe way
-                // taken from: http://www.sparxeng.com/blog/software/must-use-net-system-io-ports-serialport
-
-                byte[] buffer = new byte[1024];
-
-                try
-                {
-                    while (serialPort.IsOpen && asyncReceive)
-                    {
-                        // Async wait for data
-                        int actualLength = await serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length);
-
-                        // Copy actual received data and raise event
-                        byte[] received = new byte[actualLength];
-                        Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
-
-                        // Enqueue incoming elements for later retrieval
-                        lock (lockIncoming)
-                        {
-                            foreach (byte b in received)
-                            {
-                                queueIncoming.Enqueue(b);
-                            }
-                        }
-
-                        // Notify application
-                        raiseDataReceived();
-                    }
-                }
-                catch (Exception exc)
-                {
-                    raiseSerialError(exc);
-                }
-            }
         }
 
         /// <summary>
@@ -321,6 +254,13 @@ namespace ActiveLoadProtocol
             }
         }
 
+        public async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return await serialPort.BaseStream.ReadAsync(buffer, offset, count, cancellationToken);
+        }
+        #endregion
+
+        #region Functions
         /// <summary>
         /// Clear the incoming FIFO queue.
         /// </summary>
