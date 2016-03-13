@@ -71,8 +71,6 @@ namespace ActiveLoadProtocol
                     {
                         Debug.WriteLine("Found device at: " + portName);
 
-                        Close();
-
                         listPortNames.Add(portName);
                     }
 
@@ -81,6 +79,7 @@ namespace ActiveLoadProtocol
                 catch (Exception)
                 {
                     // Continue with next device
+                    Close();
                 }
             }
 
