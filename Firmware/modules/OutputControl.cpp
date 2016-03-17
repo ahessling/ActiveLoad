@@ -42,8 +42,8 @@ void OutputControl::lowLevelInit()
   RCC->APB1RSTR &= ~RCC_APB1Periph_DAC;
   RCC->APB1ENR |= RCC_APB1Periph_DAC;
 
-  // init and enable DAC output 1: Output buffer enabled, no trigger
-  DAC->CR = DAC_CR_EN1;
+  // init and enable DAC output 1: Output buffer disabled, no trigger
+  DAC->CR = DAC_CR_EN1 | DAC_CR_BOFF1;
 
   // reset to 0V
   DAC->DHR12R1 = 0;
