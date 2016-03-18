@@ -87,7 +87,10 @@ void DOGS104::init()
   // 8 bit data length extension (RE=0, IS=0)
   writeCommand(_functionSet);
 
-  writeCommand(0x08); // Display on
+  writeCommand(0x0C); // Display on
+
+  // clear display
+  clear();
 
   _cursorPos = 0;
 }
