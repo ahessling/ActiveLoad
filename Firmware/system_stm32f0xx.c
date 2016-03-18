@@ -139,7 +139,6 @@ __I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9}
   * @{
   */
 
-static void SetSysClock(void);
 
 /**
   * @}
@@ -148,6 +147,33 @@ static void SetSysClock(void);
 /** @addtogroup STM32F0xx_System_Private_Functions
   * @{
   */
+
+static void clock_init(void)
+{
+  /*
+   * The initial state :
+   *  SYSCLK from HSI (=8MHz), no divider on AHB, APB1, APB2
+   *  PLL unlocked, RTC enabled on LSE
+   */
+  /* put 1 Wait-State for flash access to ensure proper reads at 48Mhz */
+  FLASH->ACR = 0x1001; /* 1 WS / Prefetch enabled */
+  /* Ensure that HSI48 is ON */
+  if (!(RCC->CR2 & (1 << 17))) {
+    /* Enable HSI */
+    RCC->CR2 |= 1 << 16;
+    /* Wait for HSI to be ready */
+    while (!(RCC->CR2 & (1 << 17)));
+  }
+  /*
+   * HSI48 = 48MHz, no prescaler, no MCO, no PLL
+   * therefore PCLK = FCLK = SYSCLK = 48MHz
+   * USB uses HSI48 = 48MHz
+   */
+  /* switch SYSCLK to HSI48 */
+  RCC->CFGR = 0x00000003;
+  /* wait until the HSI48 is the clock source */
+  while ((RCC->CFGR & 0xc) != 0xc);
+}
 
 /**
   * @brief  Setup the microcontroller system.
@@ -191,7 +217,7 @@ void SystemInit (void)
   RCC->CIR = 0x00000000;
 
   /* Configure the System clock frequency, AHB/APBx prescalers and Flash settings */
-  SetSysClock();
+  clock_init();
 }
 
 /**
@@ -273,75 +299,6 @@ void SystemCoreClockUpdate (void)
   SystemCoreClock >>= tmp;  
 }
 
-/**
-  * @brief  Configures the System clock frequency, AHB/APBx prescalers and Flash
-  *         settings.
-  * @note   This function should be called only once the RCC clock configuration
-  *         is reset to the default reset state (done in SystemInit() function).
-  * @param  None
-  * @retval None
-  */
-static void SetSysClock(void)
-{
-  __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-  
-  /* SYSCLK, HCLK, PCLK configuration ----------------------------------------*/
-  /* Enable HSE */    
-  RCC->CR |= ((uint32_t)RCC_CR_HSEON);
- 
-  /* Wait till HSE is ready and if Time out is reached exit */
-  do
-  {
-    HSEStatus = RCC->CR & RCC_CR_HSERDY;
-    StartUpCounter++;  
-  } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
-
-  if ((RCC->CR & RCC_CR_HSERDY) != RESET)
-  {
-    HSEStatus = (uint32_t)0x01;
-  }
-  else
-  {
-    HSEStatus = (uint32_t)0x00;
-  }  
-
-  if (HSEStatus == (uint32_t)0x01)
-  {
-    /* Enable Prefetch Buffer and set Flash Latency */
-    FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
- 
-    /* HCLK = SYSCLK */
-    RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
-      
-    /* PCLK = HCLK */
-    RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE_DIV1;
-
-    /* PLL configuration = HSE * 6 = 48 MHz */
-    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLXTPRE | RCC_CFGR_PLLMULL));
-    RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_PREDIV1 | RCC_CFGR_PLLXTPRE_PREDIV1 | RCC_CFGR_PLLMULL6);
-            
-    /* Enable PLL */
-    RCC->CR |= RCC_CR_PLLON;
-
-    /* Wait till PLL is ready */
-    while((RCC->CR & RCC_CR_PLLRDY) == 0)
-    {
-    }
-
-    /* Select PLL as system clock source */
-    RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
-    RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;    
-
-    /* Wait till PLL is used as system clock source */
-    while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL)
-    {
-    }
-  }
-  else
-  { /* If HSE fails to start-up, the application will have wrong clock 
-         configuration. User can add here some code to deal with this error */
-  }  
-}
 
 /**
   * @}
