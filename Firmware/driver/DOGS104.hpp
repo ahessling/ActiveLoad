@@ -61,6 +61,8 @@ public:
 
   virtual void refresh();
 
+  virtual char read(bool rs) { return 0; }
+
 protected:
   virtual void reset() = 0;
 

@@ -21,6 +21,8 @@ public:
         bool topView = false);
   virtual ~DOGS104_SPI() { }
 
+  char read(bool rs);
+
 private:
   void reset();
 
