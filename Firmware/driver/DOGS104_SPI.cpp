@@ -41,7 +41,7 @@ void DOGS104_SPI::reset()
 
 int DOGS104_SPI::writeCommand(uint16_t command)
 {
-//  _spi->reconfigure();
+  _spi->reconfigure();
 
   char data[3];
 
