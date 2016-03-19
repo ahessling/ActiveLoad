@@ -19,7 +19,9 @@ InputSense::InputSense()
     _filterActualVoltage(VOLTAGE_FILTER_LENGTH),
     _filterActualCurrent(CURRENT_FILTER_LENGTH)
 {
-  _timeLastTemperature = 0;
+  // Force initial temperature update (take into account that the result takes some time)
+  _tempPower.startConversion();
+  _timeLastTemperature = -TEMPERATURE_INTERVAL + 2000;
 
   lowLevelInit();
 }
