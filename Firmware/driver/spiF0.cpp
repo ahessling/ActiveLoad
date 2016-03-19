@@ -49,25 +49,17 @@ bool SPI::init()
 
 void SPI::reconfigure()
 {
-  /* wait until FTLVL == 0
-   * wait until BSY == 0
-   * disable SPI
-   * read until FRLVL == 0
-   **/
+  // Reset peripheral
 
-  // wait until FTLVL == 0
-  while (_spi->SR & SPI_SR_FTLVL);
-
-  // wait until BSY == 0
-  while (_spi->SR & SPI_SR_BSY);
-
-  // disable SPI
-  _spi->CR1 = 0;
-
-  // flush RX FIFO
-  while (_spi->SR & SPI_SR_FRLVL)
+  if (_spi == SPI1)
   {
-    _spi->DR;
+    RCC->APB2RSTR |= RCC_APB2Periph_SPI1;
+    RCC->APB2RSTR &= ~RCC_APB2Periph_SPI1;
+  }
+  else if (_spi == SPI2)
+  {
+    RCC->APB1RSTR |= RCC_APB1Periph_SPI2;
+    RCC->APB1RSTR &= ~RCC_APB1Periph_SPI2;
   }
 
   // apply new configuration
@@ -121,12 +113,14 @@ void SPI::deinit()
   {
     RCC->APB2RSTR |= RCC_APB2Periph_SPI1;
     RCC->APB2RSTR &= ~RCC_APB2Periph_SPI1;
+    RCC->APB2ENR &= ~RCC_APB2Periph_SPI1;
 
   }
   else if (_spi == SPI2)
   {
     RCC->APB1RSTR |= RCC_APB1Periph_SPI2;
     RCC->APB1RSTR &= ~RCC_APB1Periph_SPI2;
+    RCC->APB1ENR &= ~RCC_APB1Periph_SPI2;
   }
 
   _init = false;
