@@ -164,7 +164,7 @@ void HMI_Front::updateDisplay(const SystemState& systemState)
   _display.write(line, 0, 1);
 
   // line 3
-  sprintf(line, "U    %2.1fV", systemState.actualVoltage);
+  sprintf(line, "U   %4.1f V", systemState.actualVoltage);
   _display.write(line, 0, 2);
 
   // line 4
