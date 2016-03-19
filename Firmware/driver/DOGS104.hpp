@@ -61,6 +61,11 @@ public:
 
   virtual void refresh();
 
+  /** Perform a read operation.
+   *
+   * @param rs RS bit
+   * @return read value
+   */
   virtual char read(bool rs) { return 0; }
 
 protected:
