@@ -52,6 +52,9 @@ int main(void)
   mstimer_init();
   ustimer_init();
 
+  // Wait some time for LCD to power up
+  delay_ms(100);
+
   RCC->AHBENR |= RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOC | RCC_AHBPeriph_GPIOD;
 
   // low level hardware modules
