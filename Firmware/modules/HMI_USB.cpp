@@ -95,7 +95,7 @@ bool HMI_USB::execute(SystemState& systemState, SystemCommand& systemCommand)
         // check if this is a valid query
         if (_scpiCommandParser.isQuery() == true)
         {
-          HMI_USB::CommandResponse commandResponse = respondToSCPIQuery(systemState);
+          HMI_USB::CommandResponse commandResponse = respondToSCPIQuery(systemState, systemCommand);
 
           if (CR_UNKNOWN == commandResponse)
           {
@@ -142,7 +142,7 @@ bool HMI_USB::execute(SystemState& systemState, SystemCommand& systemCommand)
   return commandAvailable;
 }
 
-HMI_USB::CommandResponse HMI_USB::respondToSCPIQuery(SystemState& systemState)
+HMI_USB::CommandResponse HMI_USB::respondToSCPIQuery(SystemState& systemState, const SystemCommand& systemCommand)
 {
   // process all tokens
   char **scpiTokens = _scpiCommandParser.getSCPITokens();
@@ -185,6 +185,11 @@ HMI_USB::CommandResponse HMI_USB::respondToSCPIQuery(SystemState& systemState)
       else if (!strcmp(parsedCommand, "UPTI"))
       {
         printf("%lu seconds\n", (uint32_t)(get_uptime_ms() / 1000));
+        return CR_OK;
+      }
+      else if (!strcmp(parsedCommand, "DUMP"))
+      {
+        dumpSystemState(systemState, systemCommand);
         return CR_OK;
       }
     }
@@ -460,6 +465,17 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
   }
 
   return CR_UNKNOWN;
+}
+
+void HMI_USB::dumpSystemState(const SystemState& systemState, const SystemCommand& systemCommand)
+{
+  printf("Setpoint current      : %.3fA\n", systemState.setpointCurrent);
+  printf("Actual voltage        : %.3fV\n", systemState.actualVoltage);
+  printf("Actual current        : %.3fA\n", systemState.actualCurrent);
+  printf("Temperature power     : %.1f C\n", systemState.temperaturePower);
+  printf("Calib actual voltage  : %s\n", systemState.calibActualVoltage.isCalibrated() ? "YES":"NO");
+  printf("Calib actual current  : %s\n", systemState.calibActualCurrent.isCalibrated() ? "YES":"NO");
+  printf("Calib setpoint current: %s\n", systemCommand.calibSetpointCurrent.isCalibrated() ? "YES":"NO");
 }
 
 int HMI_USB::readChar()

@@ -42,7 +42,8 @@ private:
   int readChar();
   SCPICommand _scpiCommandParser;
   CommandResponse scpiStringToCommand(SystemCommand& systemCommand, SystemState& systemState);
-  CommandResponse respondToSCPIQuery(SystemState& systemState);
+  CommandResponse respondToSCPIQuery(SystemState& systemState, const SystemCommand& systemCommand);
+  void dumpSystemState(const SystemState& systemState, const SystemCommand& systemCommand);
 
   static HMI_USB* _this;
 
