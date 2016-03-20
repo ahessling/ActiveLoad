@@ -63,7 +63,7 @@ int main(void)
   // modules
   NVRAM nvRAM;
   SystemState systemState(&nvRAM);
-  SystemCommand systemCommand;
+  SystemCommand systemCommand(&nvRAM);
   OutputControl outputControl;
   InputSense inputSense;
   HMI_USB hmiUSB(&nvRAM);
