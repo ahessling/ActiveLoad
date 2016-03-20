@@ -626,7 +626,7 @@ L R R8
 U 1 1 56AEE93C
 P 6900 1150
 F 0 "R8" V 6980 1150 50  0000 C CNN
-F 1 "18k" V 6900 1150 50  0000 C CNN
+F 1 "2k" V 6900 1150 50  0000 C CNN
 F 2 "Resistors_SMD:R_0603" V 6830 1150 50  0001 C CNN
 F 3 "" H 6900 1150 50  0000 C CNN
 	1    6900 1150
@@ -733,8 +733,8 @@ F 3 "" H 7700 1450 50  0000 C CNN
 	1    7700 1450
 	1    0    0    -1  
 $EndComp
-Text Notes 7150 1050 0    60   ~ 0
-Gain: 0,1
+Text Notes 6550 1000 0    60   ~ 0
+Gain: around 0,1\n(DAC has R_out of around 15k)
 Text GLabel 3900 1000 2    47   BiDi ~ 0
 USB_D-
 Text GLabel 3900 1600 2    47   BiDi ~ 0
