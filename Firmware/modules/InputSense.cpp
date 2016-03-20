@@ -94,8 +94,20 @@ void InputSense::execute(SystemCommand& systemCommand,
   // get actual current
   systemState.actualCurrent = systemState.calibActualCurrent.translate(getActualCurrent());
 
+  // current cannot be negative
+  if (systemState.actualCurrent < 0)
+  {
+    systemState.actualCurrent = 0;
+  }
+
   // get actual voltage
   systemState.actualVoltage = systemState.calibActualVoltage.translate(getActualVoltage());
+
+  // voltage cannot be negative
+  if (systemState.actualVoltage < 0)
+  {
+    systemState.actualVoltage = 0;
+  }
 
   // calculate power
   systemState.actualPower = systemState.actualVoltage * systemState.actualCurrent;

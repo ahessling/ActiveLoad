@@ -55,6 +55,12 @@ void OutputControl::lowLevelInit()
  */
 void OutputControl::setSetpointCurrent(float current)
 {
+  // current must not be negative
+  if (current < 0)
+  {
+    current = 0;
+  }
+
   // calculate DAC value
 
   // gain of 1 (assuming 0.1 Ohm shunt and "DAC to opamp" gain of 0.1)
