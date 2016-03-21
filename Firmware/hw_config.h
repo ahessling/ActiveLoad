@@ -95,6 +95,10 @@
 #define ENCODER_TIM             TIM3
 #define ENCODER_AF              GPIO_AF_1
 
+// LED
+#define LED_STATE_PORT          GPIOB
+#define LED_STATE_PIN           GPIO_Pin_0
+
 /*----------------------------------------------------------------------------*\
 ** Structures                                                                 **
 **                                                                            **

@@ -25,14 +25,16 @@ public:
 private:
   void lowLevelInit();
   void updateDisplay(const SystemState& systemState);
+  void updateLED(const SystemState& systemState);
 
   SPIBase* _spi;
   uint16_t _encoderCounter;
   uint16_t _lastEncoderCounter;
   DOGS104_SPI _display;
   uint32_t _lastDisplayUpdate;
-  unsigned int _blinkTimer; ///< Display blink timer
-  bool _blinkState; ///< Display blink state
+  unsigned int _blinkTimer;    ///< Blink timer
+  bool _displayBlinkState;     ///< Display blink state
+  bool _ledBlinkState;         ///< LED blink state
 };
 
 #endif /* HMI_FRONT_HPP_ */

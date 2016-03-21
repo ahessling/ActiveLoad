@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include "driver/gpio.h"
 #include "tools/systimer.h"
+#include <math.h>
 
 // Minimum number of encoder steps between two setpoint current "steps"
 #define ENCODER_STEPS_PER_TURN      2
@@ -26,7 +27,8 @@ HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi),
   DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_4)
 {
   _blinkTimer = 0;
-  _blinkState = false;
+  _displayBlinkState = false;
+  _ledBlinkState = false;
 
   lowLevelInit();
 
@@ -63,6 +65,9 @@ bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
 
     // refresh LCD
     updateDisplay(systemState);
+
+    // update LED
+    updateLED(systemState);
 
     // save last refresh time
     _lastDisplayUpdate = mstimer_get();
@@ -150,8 +155,19 @@ void HMI_Front::lowLevelInit()
 
   // enable timer
   ENCODER_TIM->CR1 |= TIM_CR1_CEN;
+
+  // LED
+  gpio.GPIO_Mode = GPIO_Mode_OUT;
+  gpio.GPIO_OType = GPIO_OType_PP;
+  gpio.GPIO_Pin = LED_STATE_PIN;
+  LED_STATE_PORT->BRR = LED_STATE_PIN;
+  GPIO_Init(LED_STATE_PORT, &gpio);
 }
 
+/** Update the LCD.
+ *
+ * @param systemState Current SystemState
+ */
 void HMI_Front::updateDisplay(const SystemState& systemState)
 {
   char line[12];
@@ -169,7 +185,7 @@ void HMI_Front::updateDisplay(const SystemState& systemState)
   _display.write(line, 0, 2);
 
   // line 4
-  if ((true == systemState.overtemperature) && (true == _blinkState))
+  if ((true == systemState.overtemperature) && (true == _displayBlinkState))
   {
     // empty line to "blink"
     sprintf(line, "          ");
@@ -186,6 +202,48 @@ void HMI_Front::updateDisplay(const SystemState& systemState)
   // update blink state
   if ((_blinkTimer % 5) == 0)
   {
-    _blinkState = !_blinkState;
+    _displayBlinkState = !_displayBlinkState;
+  }
+}
+
+/** Update the LED.
+ *
+ * @param systemState Current SystemState
+ */
+void HMI_Front::updateLED(const SystemState& systemState)
+{
+  // update LED state
+  if (true == systemState.overtemperature)
+  {
+    // blink very fast during overtemperature conditions
+    if ((_blinkTimer % 5) == 0)
+    {
+      _ledBlinkState = !_ledBlinkState;
+    }
+  }
+  else if (fabs(systemState.actualCurrent - systemState.setpointCurrent) > 0.1)
+  {
+    // blink slowly when setpoint and actual current differ
+    if ((_blinkTimer % 10) == 0)
+    {
+      _ledBlinkState = !_ledBlinkState;
+    }
+  }
+  else
+  {
+    // LED is on when everything is OK
+    _ledBlinkState = true;
+  }
+
+  // set LED state
+  if (true == _ledBlinkState)
+  {
+    // enable LED
+    LED_STATE_PORT->BSRR = LED_STATE_PIN;
+  }
+  else
+  {
+    // disable LED
+    LED_STATE_PORT->BRR = LED_STATE_PIN;
   }
 }
