@@ -14,12 +14,19 @@
 // Current increase/decrease per step [A]
 #define SETPOINT_CURRENT_STEP       0.01
 
-#define CURRENT_LIMIT_LOW           0 // A
-#define CURRENT_LIMIT_HIGH          3 // A
+#define CURRENT_LIMIT_LOW           0.0 // A
+#define CURRENT_LIMIT_HIGH          3.0 // A
 
 class SystemCommand
 {
 public:
+  enum SystemCommandError
+  {
+    OK = 0,
+    ValueLowerLimit = -1,
+    ValueUpperLimit = -2
+  };
+
   SystemCommand()
   {
     resetToSafeState();
@@ -58,6 +65,30 @@ public:
     {
       setpointCurrent = CURRENT_LIMIT_LOW;
     }
+  }
+
+  /** Change the setpoint current.
+   *
+   * The system limits are taken into account.
+   *
+   * @param current New setpoint current
+   * @return 0 if OK, otherwise @see SystemCommandError
+   */
+  enum SystemCommandError setSetpointCurrent(float current)
+  {
+    if (current > CURRENT_LIMIT_HIGH)
+    {
+      return ValueUpperLimit;
+    }
+    else if (current < CURRENT_LIMIT_LOW)
+    {
+      return ValueLowerLimit;
+    }
+
+    // apply new setting
+    setpointCurrent = current;
+
+    return OK;
   }
 
   // setpoint current

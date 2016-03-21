@@ -33,6 +33,7 @@ public:
 private:
   enum CommandResponse
   {
+    CR_VALUE_ERROR = -3,
     CR_INVALID_PARAM = -2,
     CR_UNKNOWN = -1,
     CR_OK = 0,

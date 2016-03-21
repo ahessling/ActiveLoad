@@ -123,6 +123,10 @@ bool HMI_USB::execute(SystemState& systemState, SystemCommand& systemCommand)
           {
             printf("ERR: Invalid command parameters\n");
           }
+          else if (CR_VALUE_ERROR == commandResponse)
+          {
+            printf("ERR: Value out of range\n");
+          }
         }
 
         // reset command line
@@ -261,8 +265,8 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
         int value;
         if (sscanf(param, "%d", &value) == 1)
         {
-          systemCommand.setpointCurrent = value / 1000.0; // mA --> A
-          return CR_OK;
+          // mA --> A
+          return (systemCommand.setSetpointCurrent(value / 1000.0) == 0) ? CR_OK : CR_VALUE_ERROR;
         }
       }
       else if (!strcmp(parsedCommand, "CALIB"))
@@ -287,8 +291,8 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
         int value;
         if (sscanf(param, "%d", &value) == 1)
         {
-          systemCommand.setpointCurrent = value / 1000.0; // mA --> A
-          return CR_OK;
+          // mA --> A
+          return (systemCommand.setSetpointCurrent(value / 1000.0) == 0) ? CR_OK : CR_VALUE_ERROR;
         }
       }
     }
