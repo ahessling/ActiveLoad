@@ -24,6 +24,8 @@ public:
 private:
   void lowLevelInit();
   void setSetpointCurrent(float current);
+  void disconnectDAC();
+  void connectDAC();
 
   SystemCommand _oldSystemCommand;
 };

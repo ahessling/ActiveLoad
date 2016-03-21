@@ -24,7 +24,19 @@ void OutputControl::execute(SystemState& systemState,
   {
     // set new setpoint current
     // use linear correction if calibrated
-    setSetpointCurrent(systemCommand.calibSetpointCurrent.translate(systemCommand.setpointCurrent));
+    float calibCurrent = systemCommand.calibSetpointCurrent.translate(systemCommand.setpointCurrent);
+
+    // if current is 0, turn off DAC to minimize current draw
+    if (systemCommand.setpointCurrent < 0.001)
+    {
+      disconnectDAC();
+    }
+    else
+    {
+      connectDAC();
+    }
+
+    setSetpointCurrent(calibCurrent);
   }
 
   // save old command state
@@ -41,9 +53,6 @@ void OutputControl::lowLevelInit()
   RCC->APB1RSTR |= RCC_APB1Periph_DAC;
   RCC->APB1RSTR &= ~RCC_APB1Periph_DAC;
   RCC->APB1ENR |= RCC_APB1Periph_DAC;
-
-  // init and enable DAC output 1: Output buffer disabled, no trigger
-  DAC->CR = DAC_CR_EN1 | DAC_CR_BOFF1;
 
   // reset to 0V
   DAC->DHR12R1 = 0;
@@ -75,4 +84,26 @@ void OutputControl::setSetpointCurrent(float current)
   }
 
   DAC->DHR12R1 = dacValue;
+}
+
+/** Turn off DAC.
+ *
+ */
+void OutputControl::disconnectDAC()
+{
+  // disconnect DAC by switching it off
+  DAC->DHR12R1 = 0;
+  DAC->CR = 0;
+
+  // set port pin to LOW
+  DAC_CURRENT_PORT->BRR = DAC_CURRENT_PIN;
+}
+
+/** Turn on DAC.
+ *
+ */
+void OutputControl::connectDAC()
+{
+  // init and enable DAC output 1: Output buffer disabled, no trigger
+  DAC->CR = DAC_CR_EN1 | DAC_CR_BOFF1;
 }
