@@ -477,6 +477,7 @@ void HMI_USB::dumpSystemState(const SystemState& systemState, const SystemComman
   printf("Actual voltage        : %.3fV\n", systemState.actualVoltage);
   printf("Actual current        : %.3fA\n", systemState.actualCurrent);
   printf("Temperature power     : %.1f C\n", systemState.temperaturePower);
+  printf("Overtemperature       : %s\n", systemState.overtemperature ? "YES":"NO");
   printf("Calib actual voltage  : %s\n", systemState.calibActualVoltage.isCalibrated() ? "YES":"NO");
   printf("Calib actual current  : %s\n", systemState.calibActualCurrent.isCalibrated() ? "YES":"NO");
   printf("Calib setpoint current: %s\n", systemCommand.calibSetpointCurrent.isCalibrated() ? "YES":"NO");

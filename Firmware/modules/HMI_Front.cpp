@@ -23,9 +23,11 @@ HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi),
   _display(spi,
   {DISPLAY_CS_PORT, DISPLAY_CS_PIN}, // CS
   {DISPLAY_RESET_PORT, DISPLAY_RESET_PIN}, // Reset
-  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_4),
-  _lastSystemState(NULL)
+  DOGS104::DogFontWidth::FONT_WIDTH_5, DOGS104::DogDisplayLines::LINES_4)
 {
+  _blinkTimer = 0;
+  _blinkState = false;
+
   lowLevelInit();
 
   _encoderCounter = ENCODER_TIM->CNT;
@@ -53,15 +55,14 @@ bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
     }
   }
 
-  // update display when system state changes
-  // limit refresh time
-  if ((systemState != _lastSystemState) &&
-      (mstimer_get() - _lastDisplayUpdate > DISPLAY_REFRESH_INTERVAL))
+  // limit display refresh time
+  if (mstimer_get() - _lastDisplayUpdate > DISPLAY_REFRESH_INTERVAL)
   {
-    updateDisplay(systemState);
+    // increment display timer state
+    _blinkTimer++;
 
-    // save last system state
-    _lastSystemState = systemState;
+    // refresh LCD
+    updateDisplay(systemState);
 
     // save last refresh time
     _lastDisplayUpdate = mstimer_get();
@@ -168,8 +169,23 @@ void HMI_Front::updateDisplay(const SystemState& systemState)
   _display.write(line, 0, 2);
 
   // line 4
-  sprintf(line, "P %2dW/%2d C",
-      (int)(systemState.actualPower + 0.5),
-      (int)(systemState.temperaturePower + 0.5));
+  if ((true == systemState.overtemperature) && (true == _blinkState))
+  {
+    // empty line to "blink"
+    sprintf(line, "          ");
+  }
+  else
+  {
+    // line 4
+    sprintf(line, "P %2dW/%2d C",
+        (int)(systemState.actualPower + 0.5),
+        (int)(systemState.temperaturePower + 0.5));
+  }
   _display.write(line, 0, 3);
+
+  // update blink state
+  if ((_blinkTimer % 5) == 0)
+  {
+    _blinkState = !_blinkState;
+  }
 }

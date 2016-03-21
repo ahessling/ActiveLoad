@@ -11,6 +11,8 @@
 #include <stdio.h>
 
 #define TEMPERATURE_INTERVAL        5000 // ms
+#define OVERTEMPERATURE_LIMIT       70.0 // Celsius
+
 #define VOLTAGE_FILTER_LENGTH       32
 #define CURRENT_FILTER_LENGTH       32
 
@@ -121,6 +123,16 @@ void InputSense::execute(SystemCommand& systemCommand,
     if (_tempPower.readTemperature(&temp) == 0)
     {
       systemState.temperaturePower = temp;
+
+      // check for overtemperature condition
+      if (systemState.temperaturePower >= OVERTEMPERATURE_LIMIT)
+      {
+        systemState.overtemperature = true;
+      }
+      else
+      {
+        systemState.overtemperature = false;
+      }
     }
 
     // start new conversions

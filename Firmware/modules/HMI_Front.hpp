@@ -30,8 +30,9 @@ private:
   uint16_t _encoderCounter;
   uint16_t _lastEncoderCounter;
   DOGS104_SPI _display;
-  SystemState _lastSystemState;
   uint32_t _lastDisplayUpdate;
+  unsigned int _blinkTimer; ///< Display blink timer
+  bool _blinkState; ///< Display blink state
 };
 
 #endif /* HMI_FRONT_HPP_ */

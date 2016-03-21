@@ -18,6 +18,7 @@ public:
   {
     // init these in case the communication fails
     temperaturePower = 0.0;
+    overtemperature = false;
 
     _nvRAM = nvRAM;
 
@@ -40,6 +41,8 @@ public:
   // temperature
   float temperaturePower;
 
+  bool overtemperature; ///< Overtemperature condition
+
   bool operator!=(const SystemState& rhs) const
   {
     bool unequal = false;
@@ -49,6 +52,7 @@ public:
     unequal |= actualCurrent != rhs.actualCurrent;
     unequal |= actualPower != rhs.actualPower;
     unequal |= temperaturePower != rhs.temperaturePower;
+    unequal |= overtemperature != rhs.overtemperature;
 
     return unequal;
   }
