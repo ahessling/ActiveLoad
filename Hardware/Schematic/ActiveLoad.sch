@@ -2194,4 +2194,6 @@ F 3 "" H 1150 3850 50  0000 C CNN
 $EndComp
 Wire Wire Line
 	1150 3850 1150 3900
+Text Notes 7600 6350 0    60   ~ 12
+If U5 is fitted, there is no\nreverse polarity protection!
 $EndSCHEMATC
