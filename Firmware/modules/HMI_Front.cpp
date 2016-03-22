@@ -73,6 +73,13 @@ bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
     _lastDisplayUpdate = mstimer_get();
   }
 
+  // check if encoder key is pressed
+  if (!(ENCODER_SWITCH_PORT->IDR & ENCODER_SWITCH_PIN))
+  {
+    // reset to safe state (setpoint current to 0)
+    systemCommand.resetToSafeState();
+  }
+
   return false;
 }
 
