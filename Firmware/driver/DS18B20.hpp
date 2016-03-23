@@ -21,9 +21,17 @@ public:
 
   int readTemperature(float *temperature);
 
+  typedef enum _TemperatureSensor
+  {
+    Unknown = 0,
+    DS18B20Type,
+    DS18S20Type
+  } TemperatureSensor;
+
 private:
   int readScratchpad();
   int busyWait();
+  int readROM();
 
   typedef struct __attribute__((packed))
   {
@@ -39,6 +47,8 @@ private:
   DS18B20Scratchpad _scratchpad;
   bool _scratchpadValid;
   bool _conversionStarted;
+  TemperatureSensor _temperatureSensor;
+  char _romCode[8];
 };
 
 #endif /* DS18B20_HPP_ */

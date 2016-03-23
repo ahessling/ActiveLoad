@@ -19,6 +19,7 @@ DS18B20::DS18B20(GPIO_TypeDef* dataGPIO, uint16_t dataPin) : Dallas1Wire(dataGPI
 {
   _scratchpadValid = false;
   _conversionStarted = false;
+  _temperatureSensor = TemperatureSensor::Unknown;
 }
 
 /** Reads the DS18B20 temperature from scratchpad.
@@ -41,7 +42,22 @@ int DS18B20::readTemperature(float* temperature)
   if (0 == result)
   {
     *temperature = ((int16_t)_scratchpad.tempLow) | ((int16_t)_scratchpad.tempHigh << 8);
-    *temperature *= 0.0625;
+
+    if (TemperatureSensor::DS18B20Type == _temperatureSensor)
+    {
+      // DS18S20 type has 12 bit resolution (0.0625 Kelvin per LSB)
+      *temperature *= 0.0625;
+    }
+    else if (TemperatureSensor::DS18S20Type == _temperatureSensor)
+    {
+      // DS18S20 type has 9 bit resolution (0.5 Kelvin per LSB)
+      *temperature *= 0.5;
+    }
+    else
+    {
+      // unknown type
+      result = -1;
+    }
   }
 
   return result;
@@ -54,7 +70,34 @@ int DS18B20::readTemperature(float* temperature)
  */
 int DS18B20::startConversion(bool wait)
 {
-  int result = reset();
+  int result = 0;
+
+  if (TemperatureSensor::Unknown == _temperatureSensor)
+  {
+    // no conversion started before (first start)
+
+    // identify chip (DS18B20 or DS18S20)
+    result = readROM();
+
+    if (0 != result)
+    {
+      // could not identify chip
+      return result;
+    }
+    else
+    {
+      if (_romCode[0] == 0x28)
+      {
+        _temperatureSensor = TemperatureSensor::DS18B20Type;
+      }
+      else if (_romCode[0] == 0x10)
+      {
+        _temperatureSensor = TemperatureSensor::DS18S20Type;
+      }
+    }
+  }
+
+  result = reset();
 
   if (0 == result)
   {
@@ -126,4 +169,26 @@ int DS18B20::busyWait()
   {
     return 0;
   }
+}
+
+/** Read 64 bit unique ROM code.
+ *
+ * @return 0 if no timeout has occured.
+ */
+int DS18B20::readROM()
+{
+  int result = reset();
+
+  if (0 == result)
+  {
+    writeByte(0x33); // Read ROM
+
+    // read 64 bit unique code
+    for (unsigned int i = 0; i < 8; i++)
+    {
+      _romCode[i] = readByte();
+    }
+  }
+
+  return result;
 }
