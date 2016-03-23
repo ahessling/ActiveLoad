@@ -229,6 +229,11 @@ HMI_USB::CommandResponse HMI_USB::respondToSCPIQuery(SystemState& systemState, c
         }
         return CR_OK;
       }
+      else if (!strcmp(parsedCommand, "POW"))
+      {
+        printf("%.1fW\n", systemState.actualPower);
+        return CR_OK;
+      }
     }
 
     hierarchy++;
@@ -483,6 +488,7 @@ void HMI_USB::dumpSystemState(const SystemState& systemState, const SystemComman
   printf("Setpoint current      : %.3fA\n", systemState.setpointCurrent);
   printf("Actual voltage        : %.3fV\n", systemState.actualVoltage);
   printf("Actual current        : %.3fA\n", systemState.actualCurrent);
+  printf("Actual power          : %.1fW\n", systemState.actualPower);
   printf("Temperature power     : %.1f C\n", systemState.temperaturePower);
   printf("Overtemperature       : %s\n", systemState.overtemperature ? "YES":"NO");
   printf("Calib actual voltage  : %s\n", systemState.calibActualVoltage.isCalibrated() ? "YES":"NO");
