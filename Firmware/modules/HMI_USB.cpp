@@ -219,7 +219,14 @@ HMI_USB::CommandResponse HMI_USB::respondToSCPIQuery(SystemState& systemState, c
       }
       else if (!strcmp(parsedCommand, "TEMP"))
       {
-        printf("%d C\n", (int)(systemState.temperaturePower + 0.5));
+        if (!isnan(systemState.temperaturePower))
+        {
+          printf("%.1f C\n", systemState.temperaturePower);
+        }
+        else
+        {
+          printf("? C\n");
+        }
         return CR_OK;
       }
     }

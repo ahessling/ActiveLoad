@@ -10,6 +10,7 @@
 
 #include "tools/TwoPointCalibration.hpp"
 #include "NVRAM.hpp"
+#include <math.h>
 
 class SystemState
 {
@@ -17,7 +18,7 @@ public:
   SystemState(NVRAM* nvRAM)
   {
     // init these in case the communication fails
-    temperaturePower = 0.0;
+    temperaturePower = NAN;
     overtemperature = false;
 
     _nvRAM = nvRAM;

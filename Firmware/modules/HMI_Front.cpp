@@ -200,9 +200,17 @@ void HMI_Front::updateDisplay(const SystemState& systemState)
   else
   {
     // line 4
-    sprintf(line, "P %2dW/%2d C",
-        (int)(systemState.actualPower + 0.5),
-        (int)(systemState.temperaturePower + 0.5));
+    if (!isnan(systemState.temperaturePower))
+    {
+      sprintf(line, "P %2dW/%2d C",
+          (int)roundf(systemState.actualPower),
+          (int)roundf(systemState.temperaturePower));
+    }
+    else
+    {
+      sprintf(line, "P %2dW/?  C",
+          (int)roundf(systemState.actualPower));
+    }
   }
   _display.write(line, 0, 3);
 

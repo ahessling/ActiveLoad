@@ -134,6 +134,11 @@ void InputSense::execute(SystemCommand& systemCommand,
         systemState.overtemperature = false;
       }
     }
+    else
+    {
+      // could not read temperature
+      systemState.temperaturePower = NAN;
+    }
 
     // start new conversions
     _tempPower.startConversion();
