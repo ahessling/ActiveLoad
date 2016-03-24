@@ -334,6 +334,8 @@ HMI_USB::CommandResponse HMI_USB::scpiStringToCommand(SystemCommand& systemComma
       }
       else if (!strcmp(parsedCommand, "*RST"))
       {
+        systemCommand.resetToSafeState();
+
         return CR_OK;
       }
       else if (!strcmp(parsedCommand, "*DFU"))
