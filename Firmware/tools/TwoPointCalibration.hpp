@@ -31,6 +31,9 @@ public:
 
   static const int serializedDataLength;
 
+  float VectorX[2];
+  float VectorY[2];
+
 private:
   virtual int _serialize(char* serialBuf, unsigned int serialBufLength) const;
 

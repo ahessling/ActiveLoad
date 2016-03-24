@@ -8,7 +8,7 @@
 #include "TwoPointCalibration.hpp"
 #include <string.h>
 
-const int TwoPointCalibration::serializedDataLength = 8; ///< Number of bytes used for serialization
+const int TwoPointCalibration::serializedDataLength = 24; ///< Number of bytes used for serialization
 
 /** Initialize with unity gain and null offset.
  *
@@ -29,6 +29,10 @@ TwoPointCalibration::TwoPointCalibration(float gain, float offset)
   _offset = offset;
   _calibrated = true;
 
+  // set input and output vectors to NaN since they are unknown
+  memset(VectorX, 0xFF, 2 * sizeof(float));
+  memset(VectorY, 0xFF, 2 * sizeof(float));
+
   _serializedDataLength = TwoPointCalibration::serializedDataLength;
 }
 
@@ -46,6 +50,10 @@ void TwoPointCalibration::calibrate(float x[2], float y[2])
   // calculate gain and offset
   _gain = (y[0] - y[1]) / (x[0] - x[1]);
   _offset = y[0] - _gain * x[0];
+
+  // save input and output vector
+  memcpy(VectorX, x, 2 * sizeof(float));
+  memcpy(VectorY, y, 2 * sizeof(float));
 
   _calibrated = true;
 }
@@ -67,6 +75,10 @@ int TwoPointCalibration::_serialize(char* serialBuf,
   memcpy(serialBuf, &_gain, sizeof(_gain));
   serialBuf += sizeof(_gain);
   memcpy(serialBuf, &_offset, sizeof(_offset));
+  serialBuf += sizeof(_offset);
+  memcpy(serialBuf, VectorX, 2 * sizeof(float));
+  serialBuf += 2 * sizeof(float);
+  memcpy(serialBuf, VectorY, 2 * sizeof(float));
 
   return 0;
 }
@@ -89,6 +101,10 @@ int TwoPointCalibration::_deserialize(const char* serialBuf,
   memcpy(&_gain, serialBuf, sizeof(_gain));
   serialBuf += sizeof(_gain);
   memcpy(&_offset, serialBuf, sizeof(_offset));
+  serialBuf += sizeof(_offset);
+  memcpy(VectorX, serialBuf, 2 * sizeof(float));
+  serialBuf += 2 * sizeof(float);
+  memcpy(VectorY, serialBuf, 2 * sizeof(float));
 
   _calibrated = true;
 
