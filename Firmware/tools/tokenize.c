@@ -7,6 +7,7 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include "tokenize.h"
 
 /** Splits a string into tokens using a delimiter.
  *
