@@ -27,7 +27,7 @@ private:
   void disconnectDAC();
   void connectDAC();
 
-  SystemCommand _oldSystemCommand;
+  float _oldCurrent;
 };
 
 #endif /* OUTPUTCONTROL_HPP_ */

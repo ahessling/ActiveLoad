@@ -7,25 +7,26 @@
  */
 #include "OutputControl.hpp"
 #include "hw_config.h"
+#include <math.h>
 
 OutputControl::OutputControl()
 {
   // init low level hardware
   lowLevelInit();
+
+  _oldCurrent = NAN;
 }
 
 void OutputControl::execute(SystemState& systemState,
     const SystemCommand& systemCommand, bool forceUpdate)
 {
+  // set new setpoint current
+  // use linear correction if calibrated
+  float calibCurrent = systemCommand.calibSetpointCurrent.translate(systemCommand.setpointCurrent);
+
   // check if there is work to do
-
-  // setpoint current
-  if (systemCommand.setpointCurrent != _oldSystemCommand.setpointCurrent || forceUpdate)
+  if (calibCurrent != _oldCurrent || forceUpdate)
   {
-    // set new setpoint current
-    // use linear correction if calibrated
-    float calibCurrent = systemCommand.calibSetpointCurrent.translate(systemCommand.setpointCurrent);
-
     // if current is 0, turn off DAC to minimize current draw
     if (systemCommand.setpointCurrent < 0.001)
     {
@@ -39,8 +40,8 @@ void OutputControl::execute(SystemState& systemState,
     setSetpointCurrent(calibCurrent);
   }
 
-  // save old command state
-  _oldSystemCommand = systemCommand;
+  // save old state
+  _oldCurrent = calibCurrent;
 }
 
 void OutputControl::lowLevelInit()
