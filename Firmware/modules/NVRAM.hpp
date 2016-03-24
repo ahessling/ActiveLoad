@@ -28,10 +28,10 @@ public:
   enum MemoryLayout
   {
     CalibSetpointCurrent = 0x00, //!< CalibSetpointCurrent
-    CalibActualVoltage   = 0x0A, //!< CalibActualVoltage
-    CalibActualCurrent   = 0x14, //!< CalibActualCurrent
+    CalibActualVoltage   = 0x1A, //!< CalibActualVoltage
+    CalibActualCurrent   = 0x34, //!< CalibActualCurrent
 
-    MemorySize           = 0x1E  //!< Total size of memory layout
+    MemorySize           = 0x4E  //!< Total size of memory layout
   };
 
   int clearMemorySlot(enum MemoryLayout memorySlot, unsigned int size);
