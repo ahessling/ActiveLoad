@@ -37,6 +37,10 @@ HMI_Front::HMI_Front(SPIBase* spi) : _spi(spi),
 
   // init display and turn it on
   _display.init();
+
+  _oldKeyPress = false;
+
+  _oldSetpointCurrent = 0;
 }
 
 bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
@@ -74,11 +78,26 @@ bool HMI_Front::execute(SystemState& systemState, SystemCommand& systemCommand)
   }
 
   // check if encoder key is pressed
-  if (!(ENCODER_SWITCH_PORT->IDR & ENCODER_SWITCH_PIN))
+  bool keyPress = (ENCODER_SWITCH_PORT->IDR & ENCODER_SWITCH_PIN) ? false : true;
+
+  if (keyPress && !_oldKeyPress)
   {
-    // reset to safe state (setpoint current to 0)
-    systemCommand.resetToSafeState();
+    if (systemCommand.setpointCurrent == 0)
+    {
+      // retrieve last setpoint current
+      systemCommand.setSetpointCurrent(_oldSetpointCurrent);
+    }
+    else
+    {
+      // save setpoint current
+      _oldSetpointCurrent = systemCommand.setpointCurrent;
+
+      // reset to safe state (setpoint current to 0)
+      systemCommand.resetToSafeState();
+    }
   }
+
+  _oldKeyPress = keyPress;
 
   return false;
 }

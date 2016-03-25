@@ -35,6 +35,8 @@ private:
   unsigned int _blinkTimer;    ///< Blink timer
   bool _displayBlinkState;     ///< Display blink state
   bool _ledBlinkState;         ///< LED blink state
+  bool _oldKeyPress;
+  float _oldSetpointCurrent;
 };
 
 #endif /* HMI_FRONT_HPP_ */

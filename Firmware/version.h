@@ -11,7 +11,7 @@
 #define MAJOR_VERSION   0
 #define MINOR_VERSION   9
 
-#define REVISION        2
+#define REVISION        3
 
 #define STRINGIZE_NX(A) #A
 #define STRINGIZE(A) STRINGIZE_NX(A)
