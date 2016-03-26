@@ -34,6 +34,11 @@ namespace ActiveLoadProtocol
         {
             get; private set;
         }
+
+        public SCPIIdentity Identity
+        {
+            get; private set;
+        }
         #endregion
 
         #region Constructors
@@ -65,9 +70,9 @@ namespace ActiveLoadProtocol
                     Open(portName);
 
                     // Probe device using SCPI request *IDN?
-                    string response = await GetIdnAsync();
+                    SCPIIdentity identity = await GetIdnAsync();
 
-                    if (response.Contains("Active Load"))
+                    if (identity.Model.Contains("Active Load"))
                     {
                         Debug.WriteLine("Found device at: " + portName);
 
@@ -142,6 +147,27 @@ namespace ActiveLoadProtocol
             }
         }
 
+        public async Task<double> GetSetpointCurrentAsync()
+        {
+            string response = await scpiProtocol.RequestAsync("CURR");
+
+            if (response.EndsWith(" mA"))
+            {
+                try
+                {
+                    return double.Parse(response.Split(' ')[0]) / 1000;
+                }
+                catch (Exception e)
+                {
+                    throw new UnexpectedResponseException("Could not parse: " + response, e);
+                }
+            }
+            else
+            {
+                throw new UnexpectedResponseException("Unexpected response: " + response);
+            }
+        }
+
         public async Task<double> GetActualVoltageAsync()
         {
             string response = await scpiProtocol.RequestAsync("MEAS:VOLT");
@@ -184,6 +210,27 @@ namespace ActiveLoadProtocol
             }
         }
 
+        public async Task<double> GetDissipatedPowerAsync()
+        {
+            string response = await scpiProtocol.RequestAsync("MEAS:POW");
+
+            if (response.EndsWith("W"))
+            {
+                try
+                {
+                    return double.Parse(response.Split('W')[0]);
+                }
+                catch (Exception e)
+                {
+                    throw new UnexpectedResponseException("Could not parse: " + response, e);
+                }
+            }
+            else
+            {
+                throw new UnexpectedResponseException("Unexpected response: " + response);
+            }
+        }
+
         public async Task<uint> GetUptimeAsync()
         {
             string response = await scpiProtocol.RequestAsync("UPTI");
@@ -205,12 +252,17 @@ namespace ActiveLoadProtocol
             }
         }
 
-        public async Task<string> GetIdnAsync()
+        public async Task<SCPIIdentity> GetIdnAsync()
         {
             string response = await scpiProtocol.RequestAsync("*IDN");
 
-            // todo: Dissect IDN string
-            return response;
+            // dissect IDN string
+            SCPIIdentity identity = new SCPIIdentity(response);
+
+            // save identity object
+            Identity = identity;
+
+            return identity;
         }
 
         #endregion
@@ -229,6 +281,11 @@ namespace ActiveLoadProtocol
         public async Task ResetAsync()
         {
             await scpiProtocol.CommandAsync("*RST", "OK");
+        }
+
+        public async Task BootloaderAsync()
+        {
+            await scpiProtocol.CommandAsync("*DFU", "");
         }
 
         #endregion
