@@ -288,6 +288,75 @@ namespace ActiveLoadProtocol
             await scpiProtocol.CommandAsync("*DFU", "");
         }
 
+        /// <summary>
+        /// Calibrate measurement of actual voltage using a two point calibration.
+        /// </summary>
+        /// <param name="realVoltage">Two voltages [V] measured with a calibrated device</param>
+        /// <param name="displayedVoltage">Displayed voltages [V] by device corresponding to the two voltages in realVoltage</param>
+        /// <returns></returns>
+        public async Task CalibrateVoltageAsync(double[] realVoltage, double[] displayedVoltage)
+        {
+            if (realVoltage.Length != 2 || displayedVoltage.Length != 2)
+            {
+                throw new ArgumentException("realVoltage and displayedVoltage need two points.");
+            }
+
+            string calibString = "CAL:VOLT ";
+            calibString += string.Format("{0:0} {1:0} {2:0} {3:0}",
+                Math.Round(realVoltage[0] * 1000),
+                Math.Round(displayedVoltage[0] * 1000),
+                Math.Round(realVoltage[1] * 1000),
+                Math.Round(displayedVoltage[1] * 1000)
+                );
+
+            await scpiProtocol.CommandAsync(calibString, "OK");
+        }
+
+        /// <summary>
+        /// Calibrate setpoint current and measurement of actual current using a two point calibration.
+        /// </summary>
+        /// <param name="deviceSetpointCurrent">Two setpoint currents [A]</param>
+        /// <param name="realCurrent">Two actual currents [A] measured with a calibrated device corresponding to deviceSetpointCurrent</param>
+        /// <param name="displayedCurrent">Two actual currents [A] measured by the device corresponding to deviceSetpointCurrent</param>
+        /// <returns></returns>
+        public async Task CalibrateCurrentAsync(double[] deviceSetpointCurrent, double[] realCurrent, double[] displayedCurrent)
+        {
+            if (deviceSetpointCurrent.Length != 2 || realCurrent.Length != 2 || displayedCurrent.Length != 2)
+            {
+                throw new ArgumentException("deviceSetpointCurrent, realCurrent and displayedCurrent need two points.");
+            }
+
+            string calibString = "CAL:CURR ";
+            calibString += string.Format("{0:0} {1:0} {2:0} {3:0} {4:0} {5:0}",
+                Math.Round(deviceSetpointCurrent[0] * 1000),
+                Math.Round(realCurrent[0] * 1000),
+                Math.Round(displayedCurrent[0] * 1000),
+                Math.Round(deviceSetpointCurrent[1] * 1000),
+                Math.Round(realCurrent[1] * 1000),
+                Math.Round(displayedCurrent[1] * 1000)
+                );
+
+            await scpiProtocol.CommandAsync(calibString, "OK");
+        }
+
+        /// <summary>
+        /// Clear current calibration data.
+        /// </summary>
+        /// <returns></returns>
+        public async Task ClearCalibrationCurrentAsync()
+        {
+            await scpiProtocol.CommandAsync("CAL:CLEAR CURR", "OK");
+        }
+
+        /// <summary>
+        /// Clear voltage calibration data.
+        /// </summary>
+        /// <returns></returns>
+        public async Task ClearCalibrationVoltageAsync()
+        {
+            await scpiProtocol.CommandAsync("CAL:CLEAR VOLT", "OK");
+        }
+
         #endregion
     }
 }
