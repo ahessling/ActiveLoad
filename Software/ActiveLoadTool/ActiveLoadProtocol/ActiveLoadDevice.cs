@@ -45,6 +45,14 @@ namespace ActiveLoadProtocol
         {
             get; private set;
         }
+
+        public bool IsOpen
+        {
+            get
+            {
+                return serialPort != null && serialPort.IsOpen;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -102,10 +110,10 @@ namespace ActiveLoadProtocol
         }
 
         /// <summary>
-        /// Connect to the first found Active Load device.
+        /// Connect to a specific device (if given) or to the first found Active Load device.
         /// </summary>
         /// <returns></returns>
-        public async Task Open()
+        public async Task<SCPIIdentity> OpenAsync()
         {
             if (PortName == null)
             {
@@ -122,6 +130,8 @@ namespace ActiveLoadProtocol
             }
 
             Open(PortName);
+
+            return await GetIdnAsync();
         }
 
         /// <summary>
