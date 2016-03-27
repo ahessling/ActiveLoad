@@ -30,11 +30,17 @@ namespace ActiveLoadProtocol
         #endregion
 
         #region Properties
+        /// <summary>
+        /// COM port of device.
+        /// </summary>
         public string PortName
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Last received SCPI identity object.
+        /// </summary>
         public SCPIIdentity Identity
         {
             get; private set;
@@ -58,6 +64,10 @@ namespace ActiveLoadProtocol
         #endregion
 
         #region Device open/close handling
+        /// <summary>
+        /// Find all connected Active Load devices.
+        /// </summary>
+        /// <returns>Array of COM ports</returns>
         public async Task<string[]> FindDevicesAsync()
         {
             string[] portNames = SerialPort.GetPortNames();
@@ -91,6 +101,10 @@ namespace ActiveLoadProtocol
             return listPortNames.ToArray();
         }
 
+        /// <summary>
+        /// Connect to the first found Active Load device.
+        /// </summary>
+        /// <returns></returns>
         public async Task Open()
         {
             if (PortName == null)
@@ -110,6 +124,10 @@ namespace ActiveLoadProtocol
             Open(PortName);
         }
 
+        /// <summary>
+        /// Connect to a device using a known COM port.
+        /// </summary>
+        /// <param name="portName"></param>
         void Open(string portName)
         {
             // Try to open specified device
@@ -119,6 +137,9 @@ namespace ActiveLoadProtocol
             scpiProtocol = new SimpleSCPIProtocol(serialPort);
         }
 
+        /// <summary>
+        /// Disconnect from the device.
+        /// </summary>
         public void Close()
         {
             serialPort.Close();
@@ -126,6 +147,10 @@ namespace ActiveLoadProtocol
         #endregion
 
         #region Functions: Get system state
+        /// <summary>
+        /// Get actual current that is sinked by the active load.
+        /// </summary>
+        /// <returns>Current [A]</returns>
         public async Task<double> GetActualCurrentAsync()
         {
             string response = await scpiProtocol.RequestAsync("MEAS:CURR");
@@ -147,6 +172,10 @@ namespace ActiveLoadProtocol
             }
         }
 
+        /// <summary>
+        /// Get actual setpoint current.
+        /// </summary>
+        /// <returns>Setpoint current [A]</returns>
         public async Task<double> GetSetpointCurrentAsync()
         {
             string response = await scpiProtocol.RequestAsync("CURR");
@@ -168,6 +197,10 @@ namespace ActiveLoadProtocol
             }
         }
 
+        /// <summary>
+        /// Get actual voltage of power source.
+        /// </summary>
+        /// <returns>Voltage [V]</returns>
         public async Task<double> GetActualVoltageAsync()
         {
             string response = await scpiProtocol.RequestAsync("MEAS:VOLT");
@@ -189,6 +222,10 @@ namespace ActiveLoadProtocol
             }
         }
 
+        /// <summary>
+        /// Get current temperature at power transistor.
+        /// </summary>
+        /// <returns>Temperature [Celsius]</returns>
         public async Task<double> GetTemperatureAsync()
         {
             string response = await scpiProtocol.RequestAsync("MEAS:TEMP");
@@ -210,6 +247,10 @@ namespace ActiveLoadProtocol
             }
         }
 
+        /// <summary>
+        /// Get actual dissipated power.
+        /// </summary>
+        /// <returns>Dissipated power [W]</returns>
         public async Task<double> GetDissipatedPowerAsync()
         {
             string response = await scpiProtocol.RequestAsync("MEAS:POW");
@@ -230,7 +271,11 @@ namespace ActiveLoadProtocol
                 throw new UnexpectedResponseException("Unexpected response: " + response);
             }
         }
-
+        
+        /// <summary>
+        /// Get device uptime since last restart.
+        /// </summary>
+        /// <returns>Uptime in seconds</returns>
         public async Task<uint> GetUptimeAsync()
         {
             string response = await scpiProtocol.RequestAsync("UPTI");
@@ -252,6 +297,10 @@ namespace ActiveLoadProtocol
             }
         }
 
+        /// <summary>
+        /// Get SCPI identity.
+        /// </summary>
+        /// <returns>SCPIIdentity object</returns>
         public async Task<SCPIIdentity> GetIdnAsync()
         {
             string response = await scpiProtocol.RequestAsync("*IDN");
@@ -268,6 +317,11 @@ namespace ActiveLoadProtocol
         #endregion
 
         #region Functions: Set system state
+        /// <summary>
+        /// Change setpoint current.
+        /// </summary>
+        /// <param name="current">New current [A]</param>
+        /// <returns></returns>
         public async Task SetSetpointCurrentAsync(double current)
         {
             if (current < 0)
@@ -278,11 +332,19 @@ namespace ActiveLoadProtocol
             await scpiProtocol.CommandAsync("CURR " + (int)(current * 1000), "OK");
         }
 
+        /// <summary>
+        /// Reset device to a safe state.
+        /// </summary>
+        /// <returns></returns>
         public async Task ResetAsync()
         {
             await scpiProtocol.CommandAsync("*RST", "OK");
         }
 
+        /// <summary>
+        /// Jump to embedded bootloader (device firmare upgrade).
+        /// </summary>
+        /// <returns></returns>
         public async Task BootloaderAsync()
         {
             await scpiProtocol.CommandAsync("*DFU", "");
