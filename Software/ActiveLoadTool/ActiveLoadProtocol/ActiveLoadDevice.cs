@@ -236,8 +236,8 @@ namespace ActiveLoadProtocol
         /// <summary>
         /// Get current temperature at power transistor.
         /// </summary>
-        /// <returns>Temperature [Celsius]</returns>
-        public async Task<double> GetTemperatureAsync()
+        /// <returns>Temperature [Celsius] or null if device cannot read temperature</returns>
+        public async Task<double?> GetTemperatureAsync()
         {
             string response = await scpiProtocol.RequestAsync("MEAS:TEMP");
 
@@ -245,7 +245,17 @@ namespace ActiveLoadProtocol
             {
                 try
                 {
-                    return double.Parse(response.Split(' ')[0], NumberStyles.Any, CultureInfo.InvariantCulture);
+                    string temperature = response.Split(' ')[0];
+
+                    // if device cannot read temperature (it returns a ?), return null
+                    if (temperature == "?")
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return double.Parse(temperature, NumberStyles.Any, CultureInfo.InvariantCulture);
+                    }
                 }
                 catch (Exception e)
                 {
