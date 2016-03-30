@@ -54,10 +54,10 @@ namespace ActiveLoadTool
             if (activeLoadCancellationTokenSource != null)
             {
                 activeLoadCancellationTokenSource.Cancel();
-            }
 
-            // await cancellation
-            await RefreshProcessImageAsync();
+                // await cancellation
+                await RefreshProcessImageAsync();
+            }
 
             // close device
             if (activeLoadDevice != null)
