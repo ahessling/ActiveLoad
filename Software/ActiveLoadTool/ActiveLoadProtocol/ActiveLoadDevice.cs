@@ -47,6 +47,9 @@ namespace ActiveLoadProtocol
             get; private set;
         }
 
+        /// <summary>
+        /// Device open state.
+        /// </summary>
         public bool IsOpen
         {
             get
@@ -55,6 +58,9 @@ namespace ActiveLoadProtocol
             }
         }
 
+        /// <summary>
+        /// Overtemperature indicator (temperature greater than 70 °C).
+        /// </summary>
         public bool Overtemperature
         {
             get; private set;
@@ -334,7 +340,24 @@ namespace ActiveLoadProtocol
         /// <returns>SCPIIdentity object</returns>
         public async Task<SCPIIdentity> GetIdnAsync()
         {
-            string response = await scpiProtocol.RequestAsync("*IDN");
+            string response = "";
+
+            // workaround: first request does not work sometimes, so retry once in this case
+            for (int retry = 0; retry < 2; retry++)
+            {
+                try
+                {
+                    response = await scpiProtocol.RequestAsync("*IDN");
+                    break;
+                }
+                catch (Exception)
+                {
+                    if (retry == 1)
+                    {
+                        throw;
+                    }
+                }
+            }
 
             // dissect IDN string
             SCPIIdentity identity = new SCPIIdentity(response);
