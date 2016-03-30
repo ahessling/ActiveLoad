@@ -21,6 +21,8 @@ namespace ActiveLoadTool
 
         bool connected = false;
 
+        bool setpointChangedFromDevice = false;
+
         public Form1()
         {
             InitializeComponent();
@@ -92,21 +94,76 @@ namespace ActiveLoadTool
         /// <returns></returns>
         private async Task RefreshProcessImageAsync()
         {
+            gbProcessImage.Enabled = true;
+
             try
             {
                 while (true)
                 {
                     activeLoadCancellationTokenSource.Token.ThrowIfCancellationRequested();
 
+                    // get current process image
                     double actualCurrent = await activeLoadDevice.GetActualCurrentAsync();
+                    double setpointCurrent = await activeLoadDevice.GetSetpointCurrentAsync();
+                    double actualVoltage = await activeLoadDevice.GetActualVoltageAsync();
+                    double? temperature = await activeLoadDevice.GetTemperatureAsync();
+                    double dissipatedPower = actualCurrent * actualVoltage;
 
+                    // show process image
+                    lActualCurrent.Text = string.Format("{0:0.00} A", actualCurrent);
+                    lActualVoltage.Text = string.Format("{0:0.00} V", actualVoltage);
+                    lDissipatedPower.Text = string.Format("{0:0.0} W", dissipatedPower);
+
+                    if (temperature != null)
+                    {
+                        lTemperature.Text = string.Format("{0:0.0} °C", temperature);
+
+                        // visualize overtemperature condition
+                        if (activeLoadDevice.Overtemperature)
+                        {
+                            lTemperature.ForeColor = Color.Red;
+                            lTemperature.Font = new Font(lTemperature.Font, FontStyle.Bold);
+                        }
+                        else
+                        {
+                            lTemperature.ForeColor = Color.Black;
+                            lTemperature.Font = new Font(lTemperature.Font, FontStyle.Regular);
+                        }
+                    }
+                    else
+                    {
+                        lTemperature.Text = "? °C";
+                    }
+
+                    // refresh numeric up/down control, but ignore OnValueChanged event
+                    setpointChangedFromDevice = true;
+                    nuSetpointCurrent.Value = (decimal)setpointCurrent;
+                    setpointChangedFromDevice = false;
+
+                    // slow down refresh loop
                     await Task.Delay(100, activeLoadCancellationTokenSource.Token);
-                    Debug.WriteLine("Actual current: " + actualCurrent);
                 }
             }
             catch (OperationCanceledException)
             {
                 // ignore, cancel requested
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.ToString() + e.Message);
+
+                if (e is InvalidOperationException || e is System.IO.IOException)
+                {
+                    MessageBox.Show("Connection to device lost. Lost power or cable disconnected?", "Connection lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    MessageBox.Show("Connection to device lost:\n" + e.Message, "Connection lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            finally
+            {
+                gbProcessImage.Enabled = false;
             }
         }
 
@@ -179,6 +236,8 @@ namespace ActiveLoadTool
             {
                 btConnect.Text = "Disconnect";
 
+                gbProcessImage.Text = "Active load device (version: " + activeLoadDevice.Identity.Version + ")";
+
                 // start asynchronous polling loop task
                 try
                 {
@@ -203,6 +262,24 @@ namespace ActiveLoadTool
             else
             {
                 btConnect.Text = "Connect";
+            }
+        }
+
+        private async void nuSetpointCurrent_ValueChanged(object sender, EventArgs e)
+        {
+            if (!setpointChangedFromDevice)
+            {
+                Debug.WriteLine("Set new setpoint current");
+
+                // value changed from GUI
+                try
+                {
+                    await activeLoadDevice.SetSetpointCurrentAsync((double)nuSetpointCurrent.Value);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Could not change setpoint current (" + ex.Message + ").", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
     }
