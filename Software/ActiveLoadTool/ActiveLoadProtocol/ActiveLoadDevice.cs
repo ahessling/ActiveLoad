@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -244,7 +245,7 @@ namespace ActiveLoadProtocol
             {
                 try
                 {
-                    return double.Parse(response.Split(' ')[0]);
+                    return double.Parse(response.Split(' ')[0], NumberStyles.Any, CultureInfo.InvariantCulture);
                 }
                 catch (Exception e)
                 {
