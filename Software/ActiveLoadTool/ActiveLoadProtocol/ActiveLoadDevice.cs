@@ -54,6 +54,11 @@ namespace ActiveLoadProtocol
                 return serialPort != null && serialPort.IsOpen;
             }
         }
+
+        public bool Overtemperature
+        {
+            get; private set;
+        }
         #endregion
 
         #region Constructors
@@ -245,16 +250,21 @@ namespace ActiveLoadProtocol
             {
                 try
                 {
-                    string temperature = response.Split(' ')[0];
+                    string temperatureString = response.Split(' ')[0];
 
                     // if device cannot read temperature (it returns a ?), return null
-                    if (temperature == "?")
+                    if (temperatureString == "?")
                     {
                         return null;
                     }
                     else
                     {
-                        return double.Parse(temperature, NumberStyles.Any, CultureInfo.InvariantCulture);
+                        double temperature = double.Parse(temperatureString, NumberStyles.Any, CultureInfo.InvariantCulture);
+
+                        // check for overtemperature condition
+                        Overtemperature = temperature >= 70;
+
+                        return temperature;
                     }
                 }
                 catch (Exception e)
