@@ -269,8 +269,6 @@ namespace ActiveLoadTool
         {
             if (!setpointChangedFromDevice)
             {
-                Debug.WriteLine("Set new setpoint current");
-
                 // value changed from GUI
                 try
                 {
