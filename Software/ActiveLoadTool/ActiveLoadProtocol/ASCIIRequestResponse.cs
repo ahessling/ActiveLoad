@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ActiveLoadProtocol
@@ -9,6 +10,7 @@ namespace ActiveLoadProtocol
     class ASCIIRequestResponse
     {
         IASCIIReadWrite readWriteInterface;
+        SemaphoreSlim semRequest;
 
         /// <summary>
         /// End every line with this string. Use this suffix also as a delimiter when receiving.
@@ -38,19 +40,21 @@ namespace ActiveLoadProtocol
 
             // New line suffix as default
             EndLineSuffix = "\n";
+
+            semRequest = new SemaphoreSlim(1);
         }
 
-        public void Send(string request)
+        public async void SendAsync(string request)
         {
-            SendAwaitResponseAsync(request);
+            await SendAwaitResponseAsync(request);
         }
 
-        public Task<string> SendAwaitResponseAsync(string request)
+        public async Task<string> SendAwaitResponseAsync(string request)
         {
-            return SendAwaitResponseAsync(request, ResponseTimeout);
+            return await SendAwaitResponseAsync(request, ResponseTimeout);
         }
 
-        public Task<string> SendAwaitResponseAsync(string request, int timeout)
+        public async Task<string> SendAwaitResponseAsync(string request, int timeout)
         {
             // Clear the incoming buffer
             readWriteInterface.FlushIncoming();
@@ -58,11 +62,28 @@ namespace ActiveLoadProtocol
             // Add end line suffix
             request += EndLineSuffix;
 
+            // wait for end of (possible) already active request and take semaphore
+            await semRequest.WaitAsync();
+
             // Send request
             readWriteInterface.Write(request);
 
             // Wait for answer
-            return readWriteInterface.ReadUntilAsync(EndLineSuffix, timeout);
+            try
+            {
+                string response = await readWriteInterface.ReadUntilAsync(EndLineSuffix, timeout);
+
+                semRequest.Release();
+
+                return response;
+            }
+            catch (Exception)
+            {
+                // release semaphore in every case
+                semRequest.Release();
+
+                throw;
+            }
         }
     }
 }
