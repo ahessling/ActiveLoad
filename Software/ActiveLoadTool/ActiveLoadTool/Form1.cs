@@ -48,6 +48,17 @@ namespace ActiveLoadTool
         private void Form1_Load(object sender, EventArgs e)
         {
             btRefresh_Click(this, null);
+
+            // try to load last COM port with valid connection
+            if (Properties.Settings.Default.LastComPort != null)
+            {
+                int indexLastComPort = cbDevices.Items.IndexOf(Properties.Settings.Default.LastComPort);
+
+                if (indexLastComPort >= 0)
+                {
+                    cbDevices.SelectedIndex = indexLastComPort;
+                }
+            }
         }
 
         private async void btAutoProbe_Click(object sender, EventArgs e)
@@ -236,6 +247,10 @@ namespace ActiveLoadTool
                 {
                     MessageBox.Show("Device is not fully calibrated. Measurements and setpoints may be inaccurate. Consider calibration of device!", "Device calibration", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
+
+                // save COM port
+                Properties.Settings.Default.LastComPort = activeLoadDevice.PortName;
+                Properties.Settings.Default.Save();
 
                 // start asynchronous polling loop task
                 try
