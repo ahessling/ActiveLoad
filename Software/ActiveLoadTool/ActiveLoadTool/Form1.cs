@@ -17,7 +17,7 @@ namespace ActiveLoadTool
     public partial class Form1 : Form
     {
         ActiveLoadDevice activeLoadDevice;
-        CancellationTokenSource activeLoadCancellationTokenSource;
+        CancellationTokenSource ctsRefreshTask;
 
         bool connected = false;
 
@@ -53,12 +53,9 @@ namespace ActiveLoadTool
         private async void btAutoProbe_Click(object sender, EventArgs e)
         {
             // cancel running refresh task
-            if (activeLoadCancellationTokenSource != null)
+            if (ctsRefreshTask != null)
             {
-                activeLoadCancellationTokenSource.Cancel();
-
-                // await cancellation
-                await RefreshProcessImageAsync();
+                ctsRefreshTask.Cancel();
             }
 
             // close device
@@ -72,7 +69,9 @@ namespace ActiveLoadTool
             // try to find all Active Load devices
             activeLoadDevice = new ActiveLoadDevice();
 
+            btAutoProbe.Enabled = false;
             string[] comPorts = await activeLoadDevice.FindDevicesAsync();
+            btAutoProbe.Enabled = true;
 
             cbDevices.Items.Clear();
 
@@ -100,7 +99,7 @@ namespace ActiveLoadTool
             {
                 while (true)
                 {
-                    activeLoadCancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    ctsRefreshTask.Token.ThrowIfCancellationRequested();
 
                     // get current process image
                     double actualCurrent = await activeLoadDevice.GetActualCurrentAsync();
@@ -141,7 +140,7 @@ namespace ActiveLoadTool
                     setpointChangedFromDevice = false;
 
                     // slow down refresh loop
-                    await Task.Delay(100, activeLoadCancellationTokenSource.Token);
+                    await Task.Delay(100, ctsRefreshTask.Token);
                 }
             }
             catch (OperationCanceledException)
@@ -152,13 +151,17 @@ namespace ActiveLoadTool
             {
                 Debug.WriteLine(e.ToString() + e.Message);
 
-                if (e is InvalidOperationException || e is System.IO.IOException)
+                // produce error if exception occured unexpected
+                if (!ctsRefreshTask.IsCancellationRequested)
                 {
-                    MessageBox.Show("Connection to device lost. Lost power or cable disconnected?", "Connection lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                else
-                {
-                    MessageBox.Show("Connection to device lost:\n" + e.Message, "Connection lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (e is InvalidOperationException || e is System.IO.IOException)
+                    {
+                        MessageBox.Show("Connection to device lost. Lost power or cable disconnected?", "Connection lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Connection to device lost:\n" + e.Message, "Connection lost", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             finally
@@ -185,7 +188,7 @@ namespace ActiveLoadTool
 
                 // try to open specified device
                 activeLoadDevice = new ActiveLoadDevice(cbDevices.Text);
-                activeLoadCancellationTokenSource = new CancellationTokenSource();
+                ctsRefreshTask = new CancellationTokenSource();
 
                 try
                 {
@@ -214,9 +217,9 @@ namespace ActiveLoadTool
             else
             {
                 // cancel running refresh task
-                if (activeLoadCancellationTokenSource != null)
+                if (ctsRefreshTask != null)
                 {
-                    activeLoadCancellationTokenSource.Cancel();
+                    ctsRefreshTask.Cancel();
                 }
 
                 connected = false;
