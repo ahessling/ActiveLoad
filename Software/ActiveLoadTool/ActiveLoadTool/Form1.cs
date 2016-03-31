@@ -219,15 +219,6 @@ namespace ActiveLoadTool
                     activeLoadCancellationTokenSource.Cancel();
                 }
 
-                // await cancellation
-                await RefreshProcessImageAsync();
-
-                // disconnect and close device
-                if (activeLoadDevice != null)
-                {
-                    activeLoadDevice.Close();
-                }
-
                 connected = false;
             }
 
@@ -237,6 +228,11 @@ namespace ActiveLoadTool
                 btConnect.Text = "Disconnect";
 
                 gbProcessImage.Text = "Active load device (version: " + activeLoadDevice.Identity.Version + ")";
+
+                if (!activeLoadDevice.IsCalibrated)
+                {
+                    MessageBox.Show("Device is not fully calibrated. Measurements and setpoints may be inaccurate. Consider calibration of device!", "Device calibration", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
 
                 // start asynchronous polling loop task
                 try
