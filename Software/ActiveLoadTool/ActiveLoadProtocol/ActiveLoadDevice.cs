@@ -59,6 +59,14 @@ namespace ActiveLoadProtocol
         }
 
         /// <summary>
+        /// Calibration data of the device.
+        /// </summary>
+        public CalibrationData Calibration
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// Overtemperature indicator (temperature greater than 70 °C).
         /// </summary>
         public bool Overtemperature
@@ -78,14 +86,15 @@ namespace ActiveLoadProtocol
         #region Constructors
         public ActiveLoadDevice()
         {
+            Calibration = new CalibrationData();
         }
 
-        public ActiveLoadDevice(string portName)
+        public ActiveLoadDevice(string portName) : this()
         {
             PortName = portName;
         }
 
-        public ActiveLoadDevice(SerialPortBuffered serialPort)
+        public ActiveLoadDevice(SerialPortBuffered serialPort) : this()
         {
             this.serialPort = serialPort;
         }
@@ -321,7 +330,7 @@ namespace ActiveLoadProtocol
                 throw new UnexpectedResponseException("Unexpected response: " + response);
             }
         }
-        
+
         /// <summary>
         /// Get device uptime since last restart.
         /// </summary>
@@ -381,22 +390,17 @@ namespace ActiveLoadProtocol
             return identity;
         }
 
-        public async Task<bool> GetCalibrationAsync()
+        public async Task<CalibrationData> GetCalibrationAsync()
         {
-            bool currentCalibrated = false;
-            bool voltageCalibrated = false;
-
             // check if "current" is calibrated
             string response = await scpiProtocol.RequestAsync("CAL:CURR");
 
-            if (response.StartsWith("Calibrated: YES"))
+            if (response.StartsWith("Calibrated: YES, "))
             {
-                // todo: parse
-                currentCalibrated = true;
+                Calibration.Current = new CalibrationData.CurrentCalibration(response.Replace("Calibrated: YES, ", ""));
             }
             else if (response.StartsWith("Calibrated: NO"))
             {
-                currentCalibrated = false;
             }
             else
             {
@@ -406,24 +410,21 @@ namespace ActiveLoadProtocol
             // check if "voltage" is calibrated
             response = await scpiProtocol.RequestAsync("CAL:VOLT");
 
-            if (response.StartsWith("Calibrated: YES"))
+            if (response.StartsWith("Calibrated: YES, "))
             {
-                // todo: parse
-                voltageCalibrated = true;
+                Calibration.Voltage = new CalibrationData.VoltageCalibration(response.Replace("Calibrated: YES, ", ""));
             }
             else if (response.StartsWith("Calibrated: NO"))
             {
-                voltageCalibrated = false;
             }
             else
             {
                 throw new UnexpectedResponseException("Unexpected response: " + response);
             }
 
-            IsCalibrated = currentCalibrated && voltageCalibrated;
+            IsCalibrated = Calibration.IsCalibrated;
 
-            // todo: return calibration data
-            return IsCalibrated;
+            return Calibration;
         }
 
         #endregion
@@ -470,18 +471,10 @@ namespace ActiveLoadProtocol
         /// <returns></returns>
         public async Task CalibrateVoltageAsync(double[] realVoltage, double[] displayedVoltage)
         {
-            if (realVoltage.Length != 2 || displayedVoltage.Length != 2)
-            {
-                throw new ArgumentException("realVoltage and displayedVoltage need two points.");
-            }
+            Calibration.Voltage = new CalibrationData.VoltageCalibration(realVoltage, displayedVoltage);
 
             string calibString = "CAL:VOLT ";
-            calibString += string.Format("{0:0} {1:0} {2:0} {3:0}",
-                Math.Round(realVoltage[0] * 1000),
-                Math.Round(displayedVoltage[0] * 1000),
-                Math.Round(realVoltage[1] * 1000),
-                Math.Round(displayedVoltage[1] * 1000)
-                );
+            calibString += Calibration.Voltage.ToString();
 
             await scpiProtocol.CommandAsync(calibString, "OK");
         }
@@ -495,20 +488,10 @@ namespace ActiveLoadProtocol
         /// <returns></returns>
         public async Task CalibrateCurrentAsync(double[] deviceSetpointCurrent, double[] realCurrent, double[] displayedCurrent)
         {
-            if (deviceSetpointCurrent.Length != 2 || realCurrent.Length != 2 || displayedCurrent.Length != 2)
-            {
-                throw new ArgumentException("deviceSetpointCurrent, realCurrent and displayedCurrent need two points.");
-            }
+            Calibration.Current = new CalibrationData.CurrentCalibration(deviceSetpointCurrent, realCurrent, displayedCurrent);
 
             string calibString = "CAL:CURR ";
-            calibString += string.Format("{0:0} {1:0} {2:0} {3:0} {4:0} {5:0}",
-                Math.Round(deviceSetpointCurrent[0] * 1000),
-                Math.Round(realCurrent[0] * 1000),
-                Math.Round(displayedCurrent[0] * 1000),
-                Math.Round(deviceSetpointCurrent[1] * 1000),
-                Math.Round(realCurrent[1] * 1000),
-                Math.Round(displayedCurrent[1] * 1000)
-                );
+            calibString += Calibration.Current.ToString();
 
             await scpiProtocol.CommandAsync(calibString, "OK");
         }
@@ -520,6 +503,7 @@ namespace ActiveLoadProtocol
         public async Task ClearCalibrationCurrentAsync()
         {
             await scpiProtocol.CommandAsync("CAL:CLEAR CURR", "OK");
+            Calibration.Current = null;
         }
 
         /// <summary>
@@ -529,8 +513,168 @@ namespace ActiveLoadProtocol
         public async Task ClearCalibrationVoltageAsync()
         {
             await scpiProtocol.CommandAsync("CAL:CLEAR VOLT", "OK");
+            Calibration.Voltage = null;
         }
 
         #endregion
+
+        public class CalibrationData
+        {
+            [Serializable]
+            public class CalibrationInvalidException : Exception
+            {
+                public CalibrationInvalidException() { }
+                public CalibrationInvalidException(string message) : base(message) { }
+                public CalibrationInvalidException(string message, Exception inner) : base(message, inner) { }
+                protected CalibrationInvalidException(
+                  System.Runtime.Serialization.SerializationInfo info,
+                  System.Runtime.Serialization.StreamingContext context) : base(info, context)
+                { }
+            }
+
+            public class CurrentCalibration
+            {
+                double[] deviceCurrentSetpoint;
+                double[] actualCurrent;
+                double[] deviceMeasuredCurrent;
+
+                public CurrentCalibration(double[] deviceCurrentSetpoint, double[] actualCurrent, double[] deviceMeasuredCurrent)
+                {
+                    if (deviceCurrentSetpoint.Length != 2 || actualCurrent.Length != 2 || deviceMeasuredCurrent.Length != 2)
+                    {
+                        throw new ArgumentException("Parameters must be arrays with length 2.");
+                    }
+
+                    this.deviceCurrentSetpoint = deviceCurrentSetpoint;
+                    this.actualCurrent = actualCurrent;
+                    this.deviceMeasuredCurrent = deviceMeasuredCurrent;
+                }
+
+                public CurrentCalibration(string calibTuples)
+                {
+                    deviceCurrentSetpoint = new double[2];
+                    actualCurrent = new double[2];
+                    deviceMeasuredCurrent = new double[2];
+
+                    string[] tuples = calibTuples.Split(' ');
+
+                    if (tuples.Length != 6)
+                    {
+                        throw new CalibrationInvalidException("calibTuples must contain exactly 6 values separated with a space character.");
+                    }
+
+                    try
+                    {
+                        deviceCurrentSetpoint[0] = double.Parse(tuples[0]) / 1000.0;
+                        actualCurrent[0] = double.Parse(tuples[1]) / 1000.0;
+                        deviceMeasuredCurrent[0] = double.Parse(tuples[2]) / 1000.0;
+
+                        deviceCurrentSetpoint[1] = double.Parse(tuples[3]) / 1000.0;
+                        actualCurrent[1] = double.Parse(tuples[4]) / 1000.0;
+                        deviceMeasuredCurrent[1] = double.Parse(tuples[5]) / 1000.0;
+                    }
+                    catch (Exception)
+                    {
+                        throw new CalibrationInvalidException("One or more parameters is not a valid number (" + calibTuples + ").");
+                    }
+                }
+
+                public override string ToString()
+                {
+                    string calibTuples = string.Format("{0:0} {1:0} {2:0} {3:0} {4:0} {5:0}",
+                        Math.Round(deviceCurrentSetpoint[0] * 1000),
+                        Math.Round(actualCurrent[0] * 1000),
+                        Math.Round(deviceMeasuredCurrent[0] * 1000),
+                        Math.Round(deviceCurrentSetpoint[1] * 1000),
+                        Math.Round(actualCurrent[1] * 1000),
+                        Math.Round(deviceMeasuredCurrent[1] * 1000)
+                        );
+
+                    return calibTuples;
+                }
+            }
+
+            public class VoltageCalibration
+            {
+                double[] actualVoltage;
+                double[] deviceMeasuredVoltage;
+
+                public VoltageCalibration(double[] actualVoltage, double[] deviceMeasuredVoltage)
+                {
+                    if (actualVoltage.Length != 2 || deviceMeasuredVoltage.Length != 2)
+                    {
+                        throw new ArgumentException("Parameters must be arrays with length 2.");
+                    }
+
+                    this.actualVoltage = actualVoltage;
+                    this.deviceMeasuredVoltage = deviceMeasuredVoltage;
+                }
+
+                public VoltageCalibration(string calibTuples)
+                {
+                    actualVoltage = new double[2];
+                    deviceMeasuredVoltage = new double[2];
+
+                    string[] tuples = calibTuples.Split(' ');
+
+                    if (tuples.Length != 4)
+                    {
+                        throw new CalibrationInvalidException("calibTuples must contain exactly 4 values separated with a space character.");
+                    }
+
+                    try
+                    {
+                        actualVoltage[0] = double.Parse(tuples[0]) / 1000.0;
+                        deviceMeasuredVoltage[0] = double.Parse(tuples[1]) / 1000.0;
+
+                        actualVoltage[1] = double.Parse(tuples[2]) / 1000.0;
+                        deviceMeasuredVoltage[1] = double.Parse(tuples[3]) / 1000.0;
+                    }
+                    catch (Exception)
+                    {
+                        throw new CalibrationInvalidException("One or more parameters is not a valid number (" + calibTuples + ").");
+                    }
+                }
+
+                public override string ToString()
+                {
+                    string calibTuples = string.Format("{0:0} {1:0} {2:0} {3:0}",
+                        Math.Round(actualVoltage[0] * 1000),
+                        Math.Round(deviceMeasuredVoltage[0] * 1000),
+                        Math.Round(actualVoltage[1] * 1000),
+                        Math.Round(deviceMeasuredVoltage[1] * 1000)
+                        );
+
+                    return calibTuples;
+                }
+            }
+
+            /// <summary>
+            /// Current calibration data.
+            /// </summary>
+            public CurrentCalibration Current
+            {
+                get; internal set;
+            }
+
+            /// <summary>
+            /// Voltage calibration data.
+            /// </summary>
+            public VoltageCalibration Voltage
+            {
+                get; internal set;
+            }
+
+            /// <summary>
+            /// Indicates if the device is calibrated.
+            /// </summary>
+            public bool IsCalibrated
+            {
+                get
+                {
+                    return Current != null && Voltage != null;
+                }
+            }
+        }
     }
 }
