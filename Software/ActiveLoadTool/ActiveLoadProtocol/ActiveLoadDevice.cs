@@ -65,6 +65,14 @@ namespace ActiveLoadProtocol
         {
             get; private set;
         }
+
+        /// <summary>
+        /// Indicates if device is fully calibrated.
+        /// </summary>
+        public bool IsCalibrated
+        {
+            get; private set;
+        }
         #endregion
 
         #region Constructors
@@ -143,7 +151,12 @@ namespace ActiveLoadProtocol
 
             Open(PortName);
 
-            return await GetIdnAsync();
+            SCPIIdentity identity = await GetIdnAsync();
+
+            // check if device is calibrated
+            await GetCalibrationAsync();
+
+            return identity;
         }
 
         /// <summary>
@@ -366,6 +379,51 @@ namespace ActiveLoadProtocol
             Identity = identity;
 
             return identity;
+        }
+
+        public async Task<bool> GetCalibrationAsync()
+        {
+            bool currentCalibrated = false;
+            bool voltageCalibrated = false;
+
+            // check if "current" is calibrated
+            string response = await scpiProtocol.RequestAsync("CAL:CURR");
+
+            if (response.StartsWith("Calibrated: YES"))
+            {
+                // todo: parse
+                currentCalibrated = true;
+            }
+            else if (response.StartsWith("Calibrated: NO"))
+            {
+                currentCalibrated = false;
+            }
+            else
+            {
+                throw new UnexpectedResponseException("Unexpected response: " + response);
+            }
+
+            // check if "voltage" is calibrated
+            response = await scpiProtocol.RequestAsync("CAL:VOLT");
+
+            if (response.StartsWith("Calibrated: YES"))
+            {
+                // todo: parse
+                voltageCalibrated = true;
+            }
+            else if (response.StartsWith("Calibrated: NO"))
+            {
+                voltageCalibrated = false;
+            }
+            else
+            {
+                throw new UnexpectedResponseException("Unexpected response: " + response);
+            }
+
+            IsCalibrated = currentCalibrated && voltageCalibrated;
+
+            // todo: return calibration data
+            return IsCalibrated;
         }
 
         #endregion
