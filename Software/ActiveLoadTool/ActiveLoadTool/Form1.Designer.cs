@@ -46,10 +46,14 @@
             this.lTemperature = new System.Windows.Forms.Label();
             this.nuSetpointCurrent = new System.Windows.Forms.NumericUpDown();
             this.gbProcessImage = new System.Windows.Forms.GroupBox();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.deviceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.calibrateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbDeviceSelection.SuspendLayout();
             this.tlProcessImage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nuSetpointCurrent)).BeginInit();
             this.gbProcessImage.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbDeviceSelection
@@ -59,7 +63,7 @@
             this.gbDeviceSelection.Controls.Add(this.btConnect);
             this.gbDeviceSelection.Controls.Add(this.label1);
             this.gbDeviceSelection.Controls.Add(this.cbDevices);
-            this.gbDeviceSelection.Location = new System.Drawing.Point(12, 12);
+            this.gbDeviceSelection.Location = new System.Drawing.Point(12, 27);
             this.gbDeviceSelection.Name = "gbDeviceSelection";
             this.gbDeviceSelection.Size = new System.Drawing.Size(294, 107);
             this.gbDeviceSelection.TabIndex = 0;
@@ -248,21 +252,49 @@
             // 
             this.gbProcessImage.Controls.Add(this.tlProcessImage);
             this.gbProcessImage.Enabled = false;
-            this.gbProcessImage.Location = new System.Drawing.Point(12, 133);
+            this.gbProcessImage.Location = new System.Drawing.Point(12, 140);
             this.gbProcessImage.Name = "gbProcessImage";
             this.gbProcessImage.Size = new System.Drawing.Size(294, 156);
             this.gbProcessImage.TabIndex = 2;
             this.gbProcessImage.TabStop = false;
             this.gbProcessImage.Text = "Active Load device";
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.deviceToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(318, 24);
+            this.menuStrip1.TabIndex = 3;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // deviceToolStripMenuItem
+            // 
+            this.deviceToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.calibrateToolStripMenuItem});
+            this.deviceToolStripMenuItem.Name = "deviceToolStripMenuItem";
+            this.deviceToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
+            this.deviceToolStripMenuItem.Text = "&Device";
+            // 
+            // calibrateToolStripMenuItem
+            // 
+            this.calibrateToolStripMenuItem.Enabled = false;
+            this.calibrateToolStripMenuItem.Name = "calibrateToolStripMenuItem";
+            this.calibrateToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.calibrateToolStripMenuItem.Text = "&Calibrate";
+            this.calibrateToolStripMenuItem.Click += new System.EventHandler(this.calibrateToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(318, 301);
+            this.ClientSize = new System.Drawing.Size(318, 312);
             this.Controls.Add(this.gbProcessImage);
             this.Controls.Add(this.gbDeviceSelection);
+            this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "Active Load Tool";
@@ -273,7 +305,10 @@
             this.tlProcessImage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nuSetpointCurrent)).EndInit();
             this.gbProcessImage.ResumeLayout(false);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -297,6 +332,9 @@
         private System.Windows.Forms.Label lDissipatedPower;
         private System.Windows.Forms.Label lTemperature;
         private System.Windows.Forms.NumericUpDown nuSetpointCurrent;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem deviceToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem calibrateToolStripMenuItem;
     }
 }
 

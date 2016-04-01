@@ -252,6 +252,8 @@ namespace ActiveLoadTool
                 Properties.Settings.Default.LastComPort = activeLoadDevice.PortName;
                 Properties.Settings.Default.Save();
 
+                calibrateToolStripMenuItem.Enabled = true;
+
                 // start asynchronous polling loop task
                 try
                 {
@@ -270,6 +272,8 @@ namespace ActiveLoadTool
                 {
                     activeLoadDevice.Close();
                 }
+
+                calibrateToolStripMenuItem.Enabled = false;
 
                 connected = false;
             }
@@ -292,6 +296,15 @@ namespace ActiveLoadTool
                 {
                     MessageBox.Show("Could not change setpoint current (" + ex.Message + ").", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private void calibrateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var calibrationForm = new CalibrationForm(activeLoadDevice);
+
+            if (calibrationForm.ShowDialog() == DialogResult.OK)
+            {
             }
         }
     }
