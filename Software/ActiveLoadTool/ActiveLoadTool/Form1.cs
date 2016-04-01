@@ -307,5 +307,14 @@ namespace ActiveLoadTool
             {
             }
         }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // cancel running refresh task
+            if (ctsRefreshTask != null)
+            {
+                ctsRefreshTask.Cancel();
+            }
+        }
     }
 }

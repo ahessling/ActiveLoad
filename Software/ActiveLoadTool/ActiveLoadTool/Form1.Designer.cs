@@ -281,7 +281,7 @@
             // 
             this.calibrateToolStripMenuItem.Enabled = false;
             this.calibrateToolStripMenuItem.Name = "calibrateToolStripMenuItem";
-            this.calibrateToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.calibrateToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
             this.calibrateToolStripMenuItem.Text = "&Calibrate";
             this.calibrateToolStripMenuItem.Click += new System.EventHandler(this.calibrateToolStripMenuItem_Click);
             // 
@@ -298,6 +298,7 @@
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "Active Load Tool";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.gbDeviceSelection.ResumeLayout(false);
             this.gbDeviceSelection.PerformLayout();
