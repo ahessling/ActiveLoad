@@ -33,7 +33,7 @@ namespace ActiveLoadProtocol
             this.readWriteInterface = readWriteInterface;
 
             // Default response timeout
-            ResponseTimeout = 100;
+            ResponseTimeout = 250;
 
             // Clear all possibly queued characters
             readWriteInterface.FlushIncoming();
