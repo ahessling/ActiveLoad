@@ -184,6 +184,17 @@ namespace ActiveLoadProtocol
 
             Open(PortName);
 
+            // send an empty line to flush buffers
+            try
+            {
+                await scpiProtocol.SendAwaitResponseAsync("", 100);
+            }
+            catch (Exception)
+            {
+                // ignore errors in this case, they are expected
+            }
+
+            // get SCPI identity object
             SCPIIdentity identity = await GetIdnAsync();
 
             // check if device is calibrated
@@ -397,6 +408,13 @@ namespace ActiveLoadProtocol
                 try
                 {
                     response = await scpiProtocol.RequestAsync("*IDN");
+
+                    // dissect IDN string
+                    SCPIIdentity identity = new SCPIIdentity(response);
+
+                    // save identity object
+                    Identity = identity;
+
                     break;
                 }
                 catch (Exception)
@@ -408,13 +426,7 @@ namespace ActiveLoadProtocol
                 }
             }
 
-            // dissect IDN string
-            SCPIIdentity identity = new SCPIIdentity(response);
-
-            // save identity object
-            Identity = identity;
-
-            return identity;
+            return Identity;
         }
 
         public async Task<CalibrationData> GetCalibrationAsync()
