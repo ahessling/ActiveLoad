@@ -81,6 +81,30 @@ namespace ActiveLoadProtocol
         {
             get; private set;
         }
+
+        /// <summary>
+        /// Last seen setpoint current [A].
+        /// </summary>
+        public double SetpointCurrent
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Last seen actual curent [A].
+        /// </summary>
+        public double ActualCurrent
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Last seen actual voltage [V].
+        /// </summary>
+        public double ActualVoltage
+        {
+            get; private set;
+        }
         #endregion
 
         #region Constructors
@@ -203,7 +227,8 @@ namespace ActiveLoadProtocol
             {
                 try
                 {
-                    return double.Parse(response.Split(' ')[0]) / 1000;
+                    ActualCurrent = double.Parse(response.Split(' ')[0]) / 1000;
+                    return ActualCurrent;
                 }
                 catch (Exception e)
                 {
@@ -228,7 +253,8 @@ namespace ActiveLoadProtocol
             {
                 try
                 {
-                    return double.Parse(response.Split(' ')[0]) / 1000;
+                    SetpointCurrent = double.Parse(response.Split(' ')[0]) / 1000;
+                    return SetpointCurrent;
                 }
                 catch (Exception e)
                 {
@@ -253,7 +279,8 @@ namespace ActiveLoadProtocol
             {
                 try
                 {
-                    return double.Parse(response.Split(' ')[0]) / 1000;
+                    ActualVoltage = double.Parse(response.Split(' ')[0]) / 1000;
+                    return ActualVoltage;
                 }
                 catch (Exception e)
                 {
@@ -534,9 +561,9 @@ namespace ActiveLoadProtocol
 
             public class CurrentCalibration
             {
-                double[] deviceCurrentSetpoint;
-                double[] actualCurrent;
-                double[] deviceMeasuredCurrent;
+                public double[] DeviceCurrentSetpoint;
+                public double[] ActualCurrent;
+                public double[] DeviceMeasuredCurrent;
 
                 public CurrentCalibration(double[] deviceCurrentSetpoint, double[] actualCurrent, double[] deviceMeasuredCurrent)
                 {
@@ -545,16 +572,16 @@ namespace ActiveLoadProtocol
                         throw new ArgumentException("Parameters must be arrays with length 2.");
                     }
 
-                    this.deviceCurrentSetpoint = deviceCurrentSetpoint;
-                    this.actualCurrent = actualCurrent;
-                    this.deviceMeasuredCurrent = deviceMeasuredCurrent;
+                    this.DeviceCurrentSetpoint = deviceCurrentSetpoint;
+                    this.ActualCurrent = actualCurrent;
+                    this.DeviceMeasuredCurrent = deviceMeasuredCurrent;
                 }
 
                 public CurrentCalibration(string calibTuples)
                 {
-                    deviceCurrentSetpoint = new double[2];
-                    actualCurrent = new double[2];
-                    deviceMeasuredCurrent = new double[2];
+                    DeviceCurrentSetpoint = new double[2];
+                    ActualCurrent = new double[2];
+                    DeviceMeasuredCurrent = new double[2];
 
                     string[] tuples = calibTuples.Split(' ');
 
@@ -565,13 +592,13 @@ namespace ActiveLoadProtocol
 
                     try
                     {
-                        deviceCurrentSetpoint[0] = double.Parse(tuples[0]) / 1000.0;
-                        actualCurrent[0] = double.Parse(tuples[1]) / 1000.0;
-                        deviceMeasuredCurrent[0] = double.Parse(tuples[2]) / 1000.0;
+                        DeviceCurrentSetpoint[0] = double.Parse(tuples[0]) / 1000.0;
+                        ActualCurrent[0] = double.Parse(tuples[1]) / 1000.0;
+                        DeviceMeasuredCurrent[0] = double.Parse(tuples[2]) / 1000.0;
 
-                        deviceCurrentSetpoint[1] = double.Parse(tuples[3]) / 1000.0;
-                        actualCurrent[1] = double.Parse(tuples[4]) / 1000.0;
-                        deviceMeasuredCurrent[1] = double.Parse(tuples[5]) / 1000.0;
+                        DeviceCurrentSetpoint[1] = double.Parse(tuples[3]) / 1000.0;
+                        ActualCurrent[1] = double.Parse(tuples[4]) / 1000.0;
+                        DeviceMeasuredCurrent[1] = double.Parse(tuples[5]) / 1000.0;
                     }
                     catch (Exception)
                     {
@@ -582,12 +609,12 @@ namespace ActiveLoadProtocol
                 public override string ToString()
                 {
                     string calibTuples = string.Format("{0:0} {1:0} {2:0} {3:0} {4:0} {5:0}",
-                        Math.Round(deviceCurrentSetpoint[0] * 1000),
-                        Math.Round(actualCurrent[0] * 1000),
-                        Math.Round(deviceMeasuredCurrent[0] * 1000),
-                        Math.Round(deviceCurrentSetpoint[1] * 1000),
-                        Math.Round(actualCurrent[1] * 1000),
-                        Math.Round(deviceMeasuredCurrent[1] * 1000)
+                        Math.Round(DeviceCurrentSetpoint[0] * 1000),
+                        Math.Round(ActualCurrent[0] * 1000),
+                        Math.Round(DeviceMeasuredCurrent[0] * 1000),
+                        Math.Round(DeviceCurrentSetpoint[1] * 1000),
+                        Math.Round(ActualCurrent[1] * 1000),
+                        Math.Round(DeviceMeasuredCurrent[1] * 1000)
                         );
 
                     return calibTuples;
@@ -596,8 +623,8 @@ namespace ActiveLoadProtocol
 
             public class VoltageCalibration
             {
-                double[] actualVoltage;
-                double[] deviceMeasuredVoltage;
+                public double[] ActualVoltage;
+                public double[] DeviceMeasuredVoltage;
 
                 public VoltageCalibration(double[] actualVoltage, double[] deviceMeasuredVoltage)
                 {
@@ -606,14 +633,14 @@ namespace ActiveLoadProtocol
                         throw new ArgumentException("Parameters must be arrays with length 2.");
                     }
 
-                    this.actualVoltage = actualVoltage;
-                    this.deviceMeasuredVoltage = deviceMeasuredVoltage;
+                    this.ActualVoltage = actualVoltage;
+                    this.DeviceMeasuredVoltage = deviceMeasuredVoltage;
                 }
 
                 public VoltageCalibration(string calibTuples)
                 {
-                    actualVoltage = new double[2];
-                    deviceMeasuredVoltage = new double[2];
+                    ActualVoltage = new double[2];
+                    DeviceMeasuredVoltage = new double[2];
 
                     string[] tuples = calibTuples.Split(' ');
 
@@ -624,11 +651,11 @@ namespace ActiveLoadProtocol
 
                     try
                     {
-                        actualVoltage[0] = double.Parse(tuples[0]) / 1000.0;
-                        deviceMeasuredVoltage[0] = double.Parse(tuples[1]) / 1000.0;
+                        ActualVoltage[0] = double.Parse(tuples[0]) / 1000.0;
+                        DeviceMeasuredVoltage[0] = double.Parse(tuples[1]) / 1000.0;
 
-                        actualVoltage[1] = double.Parse(tuples[2]) / 1000.0;
-                        deviceMeasuredVoltage[1] = double.Parse(tuples[3]) / 1000.0;
+                        ActualVoltage[1] = double.Parse(tuples[2]) / 1000.0;
+                        DeviceMeasuredVoltage[1] = double.Parse(tuples[3]) / 1000.0;
                     }
                     catch (Exception)
                     {
@@ -639,10 +666,10 @@ namespace ActiveLoadProtocol
                 public override string ToString()
                 {
                     string calibTuples = string.Format("{0:0} {1:0} {2:0} {3:0}",
-                        Math.Round(actualVoltage[0] * 1000),
-                        Math.Round(deviceMeasuredVoltage[0] * 1000),
-                        Math.Round(actualVoltage[1] * 1000),
-                        Math.Round(deviceMeasuredVoltage[1] * 1000)
+                        Math.Round(ActualVoltage[0] * 1000),
+                        Math.Round(DeviceMeasuredVoltage[0] * 1000),
+                        Math.Round(ActualVoltage[1] * 1000),
+                        Math.Round(DeviceMeasuredVoltage[1] * 1000)
                         );
 
                     return calibTuples;
