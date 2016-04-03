@@ -8,10 +8,10 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
-#define MAJOR_VERSION   0
-#define MINOR_VERSION   9
+#define MAJOR_VERSION   1
+#define MINOR_VERSION   0
 
-#define REVISION        3
+#define REVISION        1
 
 #define STRINGIZE_NX(A) #A
 #define STRINGIZE(A) STRINGIZE_NX(A)

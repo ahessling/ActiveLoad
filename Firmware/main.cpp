@@ -47,6 +47,21 @@ extern void  initialise_monitor_handles(void);
 **                                                                            **
 \*----------------------------------------------------------------------------*/
 
+static void enableWatchdog(void)
+{
+  IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+
+  // IWDG counter clock: LSI/32 (LSI = 40 kHz)
+  IWDG_SetPrescaler(IWDG_Prescaler_32);
+
+  // IWDG timeout of around 250 ms
+  IWDG_SetReload(312);
+
+  // reload and enable
+  IWDG_ReloadCounter();
+  IWDG_Enable();
+}
+
 int main(void)
 {
   mstimer_init();
@@ -54,6 +69,9 @@ int main(void)
 
   // Wait some time for LCD to power up
   delay_ms(100);
+
+  // enable watchdog
+  enableWatchdog();
 
   RCC->AHBENR |= RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOC | RCC_AHBPeriph_GPIOD;
 
@@ -82,6 +100,9 @@ int main(void)
 
     // Module: Output control
     outputControl.execute(systemState, systemCommand);
+
+    // reload watchdog
+    IWDG_ReloadCounter();
   }
 
   return 0;
