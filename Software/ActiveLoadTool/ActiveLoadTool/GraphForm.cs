@@ -152,6 +152,8 @@ namespace ActiveLoadTool
             {
                 series.Points.Clear();
             }
+
+            setChartBounds();
         }
 
         private void cbInterval_KeyPress(object sender, KeyPressEventArgs e)
@@ -176,6 +178,8 @@ namespace ActiveLoadTool
                     {
                         series.Points.Clear();
                     }
+
+                    setChartBounds();
                 }
                 catch (Exception)
                 {
