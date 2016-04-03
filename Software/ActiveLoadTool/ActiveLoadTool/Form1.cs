@@ -330,5 +330,11 @@ namespace ActiveLoadTool
         {
             GraphForm.GetForm(activeLoadDevice).Show();
         }
+
+        private void infoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AboutBox aboutBox = new AboutBox();
+            aboutBox.ShowDialog();
+        }
     }
 }

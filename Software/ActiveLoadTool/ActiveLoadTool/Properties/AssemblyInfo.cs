@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Allgemeine Informationen über eine Assembly werden über die folgenden 
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die einer Assembly zugeordnet sind.
-[assembly: AssemblyTitle("ActiveLoadTool")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Active Load Tool")]
+[assembly: AssemblyDescription("Tool to control and monitor an Active Load device. http://blog.andrehessling.de")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ActiveLoadTool")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCompany("André Heßling")]
+[assembly: AssemblyProduct("Active Load Tool")]
+[assembly: AssemblyCopyright("Copyright ©  2016 André Heßling")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
