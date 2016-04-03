@@ -105,6 +105,14 @@ namespace ActiveLoadProtocol
         {
             get; private set;
         }
+
+        /// <summary>
+        /// Last seen temperature [°C].
+        /// </summary>
+        public double Temperature
+        {
+            get; private set;
+        }
         #endregion
 
         #region Constructors
@@ -325,12 +333,12 @@ namespace ActiveLoadProtocol
                     }
                     else
                     {
-                        double temperature = double.Parse(temperatureString, NumberStyles.Any, CultureInfo.InvariantCulture);
+                        Temperature = double.Parse(temperatureString, NumberStyles.Any, CultureInfo.InvariantCulture);
 
                         // check for overtemperature condition
-                        Overtemperature = temperature >= 70;
+                        Overtemperature = Temperature >= 70;
 
-                        return temperature;
+                        return Temperature;
                     }
                 }
                 catch (Exception e)
