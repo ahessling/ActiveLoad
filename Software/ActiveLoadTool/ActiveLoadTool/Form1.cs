@@ -253,6 +253,7 @@ namespace ActiveLoadTool
                 Properties.Settings.Default.Save();
 
                 calibrateToolStripMenuItem.Enabled = true;
+                showgraphToolStripMenuItem.Enabled = true;
 
                 // start asynchronous polling loop task
                 try
@@ -274,8 +275,16 @@ namespace ActiveLoadTool
                 }
 
                 calibrateToolStripMenuItem.Enabled = false;
+                showgraphToolStripMenuItem.Enabled = false;
 
                 connected = false;
+
+                // close graph form if open
+                Form graphForm = Application.OpenForms["GraphForm"];
+                if (graphForm != null)
+                {
+                    graphForm.Close();
+                }
             }
             else
             {
@@ -315,6 +324,11 @@ namespace ActiveLoadTool
             {
                 ctsRefreshTask.Cancel();
             }
+        }
+
+        private void showgraphToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GraphForm.GetForm(activeLoadDevice).Show();
         }
     }
 }

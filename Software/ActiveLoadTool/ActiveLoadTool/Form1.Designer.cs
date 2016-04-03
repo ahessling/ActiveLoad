@@ -49,6 +49,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.deviceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.calibrateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showgraphToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gbDeviceSelection.SuspendLayout();
             this.tlProcessImage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nuSetpointCurrent)).BeginInit();
@@ -272,7 +273,8 @@
             // deviceToolStripMenuItem
             // 
             this.deviceToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.calibrateToolStripMenuItem});
+            this.calibrateToolStripMenuItem,
+            this.showgraphToolStripMenuItem});
             this.deviceToolStripMenuItem.Name = "deviceToolStripMenuItem";
             this.deviceToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
             this.deviceToolStripMenuItem.Text = "&Device";
@@ -281,9 +283,17 @@
             // 
             this.calibrateToolStripMenuItem.Enabled = false;
             this.calibrateToolStripMenuItem.Name = "calibrateToolStripMenuItem";
-            this.calibrateToolStripMenuItem.Size = new System.Drawing.Size(121, 22);
+            this.calibrateToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.calibrateToolStripMenuItem.Text = "&Calibrate";
             this.calibrateToolStripMenuItem.Click += new System.EventHandler(this.calibrateToolStripMenuItem_Click);
+            // 
+            // showgraphToolStripMenuItem
+            // 
+            this.showgraphToolStripMenuItem.Enabled = false;
+            this.showgraphToolStripMenuItem.Name = "showgraphToolStripMenuItem";
+            this.showgraphToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.showgraphToolStripMenuItem.Text = "Show &graph";
+            this.showgraphToolStripMenuItem.Click += new System.EventHandler(this.showgraphToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -336,6 +346,7 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem deviceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem calibrateToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showgraphToolStripMenuItem;
     }
 }
 
