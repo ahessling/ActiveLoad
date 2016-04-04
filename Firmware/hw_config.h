@@ -2,7 +2,7 @@
   * \file
   * \author  $Author:  $
   * \version $Revision:  $
-  * \package LabPowerSupply
+  * \package ActiveLoad
   *
   *
   *
@@ -29,7 +29,7 @@
 ** Definitions                                                                **
 **                                                                            **
 \*----------------------------------------------------------------------------*/
-/** @addtogroup /LabPowerSupply/hw_config.h
+/** @addtogroup /ActiveLoad/hw_config.h
   * @{
   */
 
