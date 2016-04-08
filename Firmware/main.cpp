@@ -2,7 +2,7 @@
   * \file
   * \author  $Author:  $
   * \version $Revision:  $
-  * \package ISM-LabPowerSupply
+  * \package ActiveLoad
   *
   *
   *
