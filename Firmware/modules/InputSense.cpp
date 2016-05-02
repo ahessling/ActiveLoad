@@ -119,6 +119,9 @@ void InputSense::execute(SystemCommand& systemCommand,
   {
     float temp;
 
+    // temporarily disable USB interrupt to avoid transfer corruption
+    NVIC->ICER[0] = (uint32_t)0x01 << USB_IRQn;
+
     // get temperature from previous conversion
     if (_tempPower.readTemperature(&temp) == 0)
     {
@@ -142,6 +145,9 @@ void InputSense::execute(SystemCommand& systemCommand,
 
     // start new conversions
     _tempPower.startConversion();
+
+    // re-enable USB interrupt
+    NVIC->ISER[0] = (uint32_t)0x01 << USB_IRQn;
 
     _timeLastTemperature = mstimer_get();
   }
