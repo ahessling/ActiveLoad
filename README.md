@@ -1,6 +1,8 @@
 # Active Load with microcontroller
 This repository contains the hardware design, the firmware and the GUI software of my active load device.
 
+<img src="https://www.andrehessling.de/wp-content/uploads/2016/03/active-load-v1-top-462x1024.jpg" width="200">
+
 Features:
 * Power supply from around 3.3V to 40V
 * Should be powered by device under test
